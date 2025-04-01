@@ -129,7 +129,7 @@ if st.button('📄 Gerar Relatório em Word'):
         p_param.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
         p_param.paragraph_format.space_after = Pt(6)
         
-        # Parágrafo com a interpretação
+        # Parágrafo com a interpretação (texto justificado)
         p_interp = doc.add_paragraph()
         run_interp_label = p_interp.add_run("Interpretação: ")
         run_interp_label.bold = True
@@ -138,7 +138,7 @@ if st.button('📄 Gerar Relatório em Word'):
         run_interp_text = p_interp.add_run(interpretacao)
         run_interp_text.font.size = Pt(11)
         run_interp_text.font.name = 'Aptos'
-        p_interp.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+        p_interp.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
         p_interp.paragraph_format.space_after = Pt(12)
 
     # Salvando o documento
