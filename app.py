@@ -73,7 +73,7 @@ if menu == "Características - Bacia Hidrográfica Contribuição":
             "valores próximos de 1 indicam canais mais retos e maior eficiência de drenagem, portanto, quanto maior o valor maior a sinuosidade e com isso, maior risco de enchentes."
         ),
         (
-            "Declividade do Curso D'água Principal (Dc)",
+            "Declividade do Curso d'água Principal (Dc)",
             dc,
             "valores abaixo de 1% indicam maior risco de enchentes, pois a drenagem é demorada, sendo rios de planícies, e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento."
         )
@@ -102,7 +102,7 @@ if menu == "Características - Bacia Hidrográfica Contribuição":
       **Interpretação**: valores próximos de 1 indicam canais mais retos e maior eficiência de drenagem, portanto, quanto maior o valor 
       maior a sinuosidade e com isso, maior risco de enchentes.
     
-    - **Declividade do Curso D'água Principal (Dc)**: {dc:.3f}%  
+    - **Declividade do Curso d'água Principal (Dc)**: {dc:.3f}%  
       **Interpretação**: valores abaixo de 1% indicam maior risco de enchentes, pois a drenagem é demorada, sendo rios de planícies, 
       e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento. 
     ''')
@@ -161,7 +161,7 @@ elif menu == "Microdrenagem - Método Racional":
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
                              ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
-    # Inputs para os modelos – L é sempre em km e H em m; para o cálculo de S, convertemos L para m
+    # Inputs para os modelos – L em km e H em m; a única conversão para m ocorre no cálculo de S quando necessário.
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
@@ -176,8 +176,8 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Van Te Chow")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Calcula S (em m/m) apenas para a equação: S = (L_km * 1000)/H
-        S = H / (L_km * 1000)
+        # S = H / L (mantém L em km)
+        S = H / L_km
         st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
     elif modelo_tc == "Giandotti":
         st.markdown("#### Parâmetros para a fórmula de Giandotti")
@@ -189,16 +189,73 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Piking")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        S = H / (L_km * 1000)
+        S = H / L_km
         st.session_state.tc = 5.3 * (((L_km ** 2) / S) ** (1/3))
     elif modelo_tc == "USACE":
         st.markdown("#### Parâmetros para a fórmula de USACE")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        S = H / (L_km * 1000)
+        S = H / L_km
         st.session_state.tc = 7.504 * (L_km ** 0.76) * (S ** (-0.19))
+    elif modelo_tc == "DNOS":
+        st.markdown("#### Parâmetros para a fórmula de DNOS")
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+        S = H / L_km
+        A = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
+        terreno_options = [
+            "arenoso-argiloso, coberto de vegetação intensa, elevada absorção",
+            "comum, coberto de vegetação, absorção apreciável",
+            "argiloso, coberto de vegetação, absorção média",
+            "argiloso de vegetação média, pouca absorção",
+            "com rocha, escassa vegetação, baixa absorção",
+            "Rochoso, vegetação rala, reduzida absorção"
+        ]
+        terreno = st.selectbox("Selecione o tipo de terreno", terreno_options)
+        if terreno == terreno_options[0]:
+            K = 2.0
+        elif terreno == terreno_options[1]:
+            K = 3.0
+        elif terreno == terreno_options[2]:
+            K = 4.0
+        elif terreno == terreno_options[3]:
+            K = 4.5
+        elif terreno == terreno_options[4]:
+            K = 5.0
+        elif terreno == terreno_options[5]:
+            K = 5.5
+        st.session_state.tc = (10 / K) * (((A ** 0.3) * (L_km ** 0.2)) / ((S) ** 0.4))
+    elif modelo_tc == "NRCS (SCS)":
+        st.markdown("#### Parâmetros para a fórmula de NRCS (SCS)")
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+        # S = H / L (L em km)
+        S = H / L_km
+        area_tipo = st.selectbox("Tipo de Área", ["Urbana", "Rural"])
+        cond_area = st.selectbox("Condição da Área", ["Seco", "Úmido"])
+        if area_tipo == "Urbana":
+            uso = st.selectbox("Uso do Solo", ["100% pavimentadas", "Urbanas altamente impermeáveis", "Residenciais", "Com parques"])
+            if uso == "100% pavimentadas":
+                CN = 98 if cond_area=="Seco" else 99
+            elif uso == "Urbanas altamente impermeáveis":
+                CN = 85 if cond_area=="Seco" else 95
+            elif uso == "Residenciais":
+                CN = 70 if cond_area=="Seco" else 85
+            elif uso == "Com parques":
+                CN = 60 if cond_area=="Seco" else 75
+        else:
+            uso = st.selectbox("Uso do Solo", ["Pastagem", "Solo argiloso", "Florestas densas", "Solo compactado"])
+            if uso == "Pastagem":
+                CN = 39 if cond_area=="Seco" else 61
+            elif uso == "Solo argiloso":
+                CN = 66 if cond_area=="Seco" else 85
+            elif uso == "Florestas densas":
+                CN = 30 if cond_area=="Seco" else 55
+            elif uso == "Solo compactado":
+                CN = 75 if cond_area=="Seco" else 85
+        st.session_state.tc = 3.42 * ((1000 / CN - 9) ** 0.7) * (L_km ** 0.8) * (S ** (-0.5))
     else:
-        st.info("Modelo selecionado (DNOS ou NRCS) ainda não implementado. Utilize um dos modelos disponíveis.")
+        st.info("Selecione um modelo válido.")
         st.session_state.tc = None
     
     st.markdown("### Dados para o Cálculo da Intensidade Pluviométrica Máxima")
@@ -223,7 +280,7 @@ elif menu == "Microdrenagem - Método Racional":
         if st.session_state.tc is None:
             st.error("Selecione um modelo de tempo de concentração implementado.")
         else:
-            td = st.session_state.tc  
+            td = st.session_state.tc  # Considera td = tc
             try:
                 st.session_state.i_max = (a * (T ** m)) / ((td + b) ** n)
             except Exception as e:
