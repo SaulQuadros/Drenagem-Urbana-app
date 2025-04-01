@@ -167,7 +167,7 @@ elif menu == "Microdrenagem - Método Racional":
     a = st.number_input("Coeficiente a", value=1000.0, step=100.0)
     b = st.number_input("Coeficiente b", value=100.0, step=0.01)
     m = st.number_input("Expoente m", value=1.0, step=0.01)
-    expoente_n = st.number_input("Expoente n", value=1.0, step=0.01)
+    n = st.number_input("Expoente n", value=1.0, step=0.01)
     
     # Novos inputs para a equação de i_max e probabilidade
     T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
@@ -188,9 +188,9 @@ elif menu == "Microdrenagem - Método Racional":
         else:
             # Considera que o tempo de duração da chuva (td) é igual ao tempo de concentração (tc)
             td = tc  
-            # Nova equação da intensidade máxima: i_max = (a * T^m) / ((td - b)^n)
+            # Nova equação da intensidade máxima: i_max = (a * T^m) / ((td + b)^n)
             try:
-                i_max = (a * (T ** m)) / ((td - b) ** expoente_n)
+                i_max = (a * (T ** m)) / ((td + b) ** n)
             except Exception as e:
                 st.error("Erro no cálculo da intensidade: verifique os valores inseridos.")
                 i_max = None
