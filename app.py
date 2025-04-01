@@ -161,7 +161,7 @@ elif menu == "Microdrenagem - Método Racional":
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
                              ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
-    # Inputs para o modelo escolhido
+    # Inputs para os modelos – L é sempre em km e H em m; para o cálculo de S, convertemos L para m
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
@@ -176,14 +176,13 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Van Te Chow")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Calcula S (em m/m) a partir de L (km) convertido para metros
+        # Calcula S (em m/m) apenas para a equação: S = (L_km * 1000)/H
         S = (L_km * 1000) / H
         st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
     elif modelo_tc == "Giandotti":
         st.markdown("#### Parâmetros para a fórmula de Giandotti")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Usa a área da bacia (km²) já inserida na outra seção? Aqui, se for necessário, pode ser solicitada.
         A = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
         st.session_state.tc = 60 * ((4 * (A ** 0.5) + 1.5 * L_km) / (0.8 * (H ** 0.5)))
     elif modelo_tc == "Piking":
@@ -224,7 +223,7 @@ elif menu == "Microdrenagem - Método Racional":
         if st.session_state.tc is None:
             st.error("Selecione um modelo de tempo de concentração implementado.")
         else:
-            td = st.session_state.tc  # td igual a tc
+            td = st.session_state.tc  
             try:
                 st.session_state.i_max = (a * (T ** m)) / ((td + b) ** n)
             except Exception as e:
@@ -245,7 +244,6 @@ elif menu == "Microdrenagem - Método Racional":
                 st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
                 st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
     
-    # Botão para gerar relatório Word – os resultados permanecem na tela
     if st.button("📄 Gerar Relatório Word - Microdrenagem"):
         if (st.session_state.tc is None or
             st.session_state.i_max is None or
