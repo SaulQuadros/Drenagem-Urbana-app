@@ -9,7 +9,7 @@ from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
-# Inicializa o estado para as variáveis se não existir
+# Inicializa o estado para as variáveis, se não existirem
 if "tc" not in st.session_state:
     st.session_state.tc = None
 if "i_max" not in st.session_state:
@@ -161,23 +161,52 @@ elif menu == "Microdrenagem - Método Racional":
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
                              ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
-    # Inputs para o modelo escolhido – implementaremos a fórmula de Kirpich
+    # Inputs para o modelo escolhido
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Cálculo do tempo de concentração (tc) em minutos conforme a fórmula:
-        # t_c = 57 * ((L^3 / H)^0.385)
         st.session_state.tc = 57 * (((L_km ** 3) / H) ** 0.385)
+    elif modelo_tc == "Kirpich Modificado":
+        st.markdown("#### Parâmetros para a fórmula de Kirpich Modificado")
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+        st.session_state.tc = 85.2 * (((L_km ** 3) / H) ** 0.385)
+    elif modelo_tc == "Van Te Chow":
+        st.markdown("#### Parâmetros para a fórmula de Van Te Chow")
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+        # Calcula S (em m/m) a partir de L (km) convertido para metros
+        S = (L_km * 1000) / H
+        st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
+    elif modelo_tc == "Giandotti":
+        st.markdown("#### Parâmetros para a fórmula de Giandotti")
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+        # Usa a área da bacia (km²) já inserida na outra seção? Aqui, se for necessário, pode ser solicitada.
+        A = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
+        st.session_state.tc = 60 * ((4 * (A ** 0.5) + 1.5 * L_km) / (0.8 * (H ** 0.5)))
+    elif modelo_tc == "Piking":
+        st.markdown("#### Parâmetros para a fórmula de Piking")
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+        S = (L_km * 1000) / H
+        st.session_state.tc = 5.3 * (((L_km ** 2) / S) ** (1/3))
+    elif modelo_tc == "USACE":
+        st.markdown("#### Parâmetros para a fórmula de USACE")
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+        S = (L_km * 1000) / H
+        st.session_state.tc = 7.504 * (L_km ** 0.76) * (S ** (-0.19))
     else:
-        st.info("Modelo selecionado ainda não implementado. Utilize o modelo 'Kirpich' para este exemplo.")
+        st.info("Modelo selecionado (DNOS ou NRCS) ainda não implementado. Utilize um dos modelos disponíveis.")
         st.session_state.tc = None
     
     st.markdown("### Dados para o Cálculo da Intensidade Pluviométrica Máxima")
     a = st.number_input("Coeficiente a", value=1000.0, step=10.0)
     b = st.number_input("Coeficiente b", value=10.0, step=0.01)
     m = st.number_input("Expoente m", value=1.0, step=0.01)
-    expoente_n = st.number_input("Expoente n", value=1.0, step=0.01)
+    n = st.number_input("Expoente n", value=1.0, step=0.01)
     
     # Novos inputs para a equação de i_max e probabilidade
     T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
@@ -195,42 +224,35 @@ elif menu == "Microdrenagem - Método Racional":
         if st.session_state.tc is None:
             st.error("Selecione um modelo de tempo de concentração implementado.")
         else:
-            td = st.session_state.tc  
-            # Nova equação da intensidade máxima: i_max = (a * T^m) / ((td + b)^expoente_n)
+            td = st.session_state.tc  # td igual a tc
             try:
-                st.session_state.i_max = (a * (T ** m)) / ((td + b) ** expoente_n)
+                st.session_state.i_max = (a * (T ** m)) / ((td + b) ** n)
             except Exception as e:
                 st.error("Erro no cálculo da intensidade: verifique os valores inseridos.")
                 st.session_state.i_max = None
             
             if st.session_state.i_max is not None:
-                # Probabilidade de ocorrência em n_period anos
                 P = 1 / T
                 P_n = 1 - ((1 - P) ** n_period)
                 st.session_state.P_n_percent = P_n * 100
                 
-                # Vazão máxima
                 i_max_ms = st.session_state.i_max * 2.78e-7
                 st.session_state.Q = C * i_max_ms * area_m2
                 
-                # Exibe resultados sem sumir da tela
                 st.markdown("#### Resultados do Projeto")
                 st.write(f"Tempo de Concentração (tc = td): **{td:.2f} minutos**")
                 st.write(f"Intensidade Pluviométrica Máxima (i_max): **{st.session_state.i_max:.2f} mm/h**")
                 st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
                 st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
     
-    # Botão para gerar relatório Word – sem sumir com resultados
+    # Botão para gerar relatório Word – os resultados permanecem na tela
     if st.button("📄 Gerar Relatório Word - Microdrenagem"):
-        if (
-            st.session_state.tc is None or
+        if (st.session_state.tc is None or
             st.session_state.i_max is None or
             st.session_state.Q is None or
-            st.session_state.P_n_percent is None
-        ):
+            st.session_state.P_n_percent is None):
             st.error("Realize o cálculo primeiro para gerar o relatório.")
         else:
-            # Gera o relatório com os dados e resultados
             doc = Document()
             sec = doc.sections[0]
             sec.top_margin = Cm(2.0)
@@ -246,7 +268,7 @@ elif menu == "Microdrenagem - Método Racional":
     
             doc.add_paragraph()
     
-            # Dados do Projeto
+            # Seção: Dados do Projeto
             doc.add_heading('Dados do Projeto', level=2)
             dados_projeto = [
                 f"Modelo de Cálculo do tc: {modelo_tc}",
@@ -256,7 +278,7 @@ elif menu == "Microdrenagem - Método Racional":
                 f"Coeficiente a: {a}",
                 f"Coeficiente b: {b}",
                 f"Expoente m: {m}",
-                f"Expoente n: {expoente_n}",
+                f"Expoente n: {n}",
                 f"Tempo de Retorno (T): {T} ano(s)",
                 f"Período de análise (n anos): {n_period}",
                 f"Coeficiente de Escoamento (C): {C}",
@@ -265,9 +287,9 @@ elif menu == "Microdrenagem - Método Racional":
             for item in dados_projeto:
                 doc.add_paragraph(item, style='List Bullet')
     
-            doc.add_paragraph()  # Espaço
+            doc.add_paragraph()  # Espaço entre seções
     
-            # Resultados
+            # Seção: Resultados
             doc.add_heading('Resultados', level=2)
             resultados_rel = [
                 f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
@@ -283,7 +305,6 @@ elif menu == "Microdrenagem - Método Racional":
             with open("relatorio_vazao_maxima.docx", "rb") as f:
                 st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_vazao_maxima.docx")
             
-            # Reexibe os resultados na tela, mantendo-os visíveis
             st.markdown("#### Resultados do Projeto (mantidos na tela)")
             st.write(f"Tempo de Concentração (tc = td): **{st.session_state.tc:.2f} minutos**")
             st.write(f"Intensidade Pluviométrica Máxima (i_max): **{st.session_state.i_max:.2f} mm/h**")
