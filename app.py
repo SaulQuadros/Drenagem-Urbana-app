@@ -177,7 +177,7 @@ elif menu == "Microdrenagem - Método Racional":
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
         # Calcula S (em m/m) apenas para a equação: S = (L_km * 1000)/H
-        S = (L_km * 1000) / H
+        S = H / (L_km * 1000)
         st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
     elif modelo_tc == "Giandotti":
         st.markdown("#### Parâmetros para a fórmula de Giandotti")
@@ -189,13 +189,13 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Piking")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        S = (L_km * 1000) / H
+        S = H / (L_km * 1000)
         st.session_state.tc = 5.3 * (((L_km ** 2) / S) ** (1/3))
     elif modelo_tc == "USACE":
         st.markdown("#### Parâmetros para a fórmula de USACE")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        S = (L_km * 1000) / H
+        S = H / (L_km * 1000)
         st.session_state.tc = 7.504 * (L_km ** 0.76) * (S ** (-0.19))
     else:
         st.info("Modelo selecionado (DNOS ou NRCS) ainda não implementado. Utilize um dos modelos disponíveis.")
