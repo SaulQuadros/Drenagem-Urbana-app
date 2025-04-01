@@ -156,8 +156,9 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=5.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Cálculo do tempo de concentração (tc) em minutos
-        tc = 57 * ((L_km ** 3 / H) ** 0.385)
+        # Cálculo do tempo de concentração (tc) em minutos conforme a nova fórmula:
+        # t_c = 57 * ((L^3 / H)^0.385)
+        tc = 57 * (((L_km ** 3) / H) ** 0.385)
     else:
         st.info("Modelo selecionado ainda não implementado. Utilize o modelo 'Kirpich' para este exemplo.")
         tc = None
