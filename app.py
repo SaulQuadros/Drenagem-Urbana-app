@@ -9,13 +9,20 @@ from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
+# Configurar estado da aplicação para o menu ativo, se ainda não existir
+if "menu_ativo" not in st.session_state:
+    st.session_state.menu_ativo = "Característica - Bacia"
+
 # Título no sidebar
 st.sidebar.title("Drenagem Urbana")
-menu = st.sidebar.radio("Cálculos", 
-                          ["Características - Bacia Hidrográfica Contribuição", 
-                           "Microdrenagem - Método Racional"])
+# Lista de opções para os cálculos
+opcao = st.sidebar.selectbox("Cálculos", 
+                             ["Característica - Bacia", "Microdrenagem - Método Racional"], index=0)
+# Botão para ativar a opção escolhida
+if st.sidebar.button("Ativar Cálculos"):
+    st.session_state.menu_ativo = opcao
 
-if menu == "Características - Bacia Hidrográfica Contribuição":
+if st.session_state.menu_ativo == "Característica - Bacia":
     st.title('Calculadora de Parâmetros de Bacia Hidrográfica')
     
     st.sidebar.header('Insira os dados da bacia')
@@ -143,7 +150,7 @@ if menu == "Características - Bacia Hidrográfica Contribuição":
         with open("relatorio_bacia.docx", "rb") as f:
             st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_bacia.docx")
 
-elif menu == "Microdrenagem - Método Racional":
+elif st.session_state.menu_ativo == "Microdrenagem - Método Racional":
     st.title("Microdrenagem - Método Racional")
     
     st.markdown("### Escolha do Modelo de Tempo de Concentração")
@@ -154,7 +161,7 @@ elif menu == "Microdrenagem - Método Racional":
     # Inputs para o modelo escolhido – para este exemplo, implementaremos a fórmula de Kirpich
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
-        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=5.0, step=0.1)
+        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
         # Cálculo do tempo de concentração (tc) em minutos conforme a nova fórmula:
         # t_c = 57 * ((L^3 / H)^0.385)
@@ -164,8 +171,8 @@ elif menu == "Microdrenagem - Método Racional":
         tc = None
     
     st.markdown("### Dados para o Cálculo da Intensidade Pluviométrica Máxima")
-    a = st.number_input("Coeficiente a", value=1000.0, step=100.0)
-    b = st.number_input("Coeficiente b", value=100.0, step=0.01)
+    a = st.number_input("Coeficiente a", value=1000.0, step=10.0)
+    b = st.number_input("Coeficiente b", value=10.0, step=0.01)
     m = st.number_input("Expoente m", value=1.0, step=0.01)
     n = st.number_input("Expoente n", value=1.0, step=0.01)
     
@@ -178,8 +185,13 @@ elif menu == "Microdrenagem - Método Racional":
     
     st.markdown("### Dados da Bacia para o Método Racional")
     # Reutiliza a área já definida para a bacia (em km²) – converte para m²
-    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=10.0, step=0.001)
+    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
     area_m2 = area_km2_md * 1e6
+    
+    # Inicialização das variáveis de cálculo
+    i_max = None
+    Q = None
+    P_n_percent = None
     
     # Botão de cálculo
     if st.button("Calcular"):
