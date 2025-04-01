@@ -5,6 +5,9 @@
 
 
 import streamlit as st
+from docx import Document
+from docx.shared import Pt, Cm
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 # Título do App
 st.title('Calculadora de Parâmetros de Bacia Hidrográfica')
