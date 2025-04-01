@@ -168,7 +168,11 @@ elif menu == "Microdrenagem - Método Racional":
     a = st.number_input("Coeficiente a", value=1000.0, step=100.0)
     b = st.number_input("Coeficiente b", value=100.0, step=0.01)
     m = st.number_input("Expoente m", value=1.0, step=0.01)
-    n = st.number_input("Expoente n", value=1.0, step=0.01)
+    expoente_n = st.number_input("Expoente n", value=1.0, step=0.01)
+    
+    # Novos inputs para a equação de i_max e probabilidade
+    T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
+    n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1)
     
     st.markdown("### Coeficiente de Escoamento Superficial (C)")
     C = st.number_input("Insira o valor de C", value=0.7, step=0.01)
@@ -183,21 +187,24 @@ elif menu == "Microdrenagem - Método Racional":
         if tc is None:
             st.error("Selecione um modelo de tempo de concentração implementado.")
         else:
-            # Neste exemplo, consideramos que o tempo de duração da chuva (td) é igual ao tempo de concentração (tc)
+            # Considera que o tempo de duração da chuva (td) é igual ao tempo de concentração (tc)
             td = tc  
-            # Cálculo da intensidade máxima (i_max) utilizando uma equação IDF simplificada:
-            # Exemplo: i_max = a / (td**m) + b * (td**n)
-            # (A equação pode ser ajustada conforme os dados e a calibração desejada)
+            # Nova equação da intensidade máxima: i_max = (a * T^m) / ((td - b)^n)
             try:
-                i_max = a / (td ** m) + b * (td ** n)
+                i_max = (a * (T ** m)) / ((td - b) ** expoente_n)
             except Exception as e:
-                st.error("Erro no cálculo da intensidade: verifique os valores de m e n.")
+                st.error("Erro no cálculo da intensidade: verifique os valores inseridos.")
                 i_max = None
             
             if i_max is not None:
+                # Cálculo da probabilidade de ocorrência do evento crítico em n_period anos:
+                # P = 1/T; P_n = 1 - (1 - P)^n_period, expresso em %
+                P = 1 / T
+                P_n = 1 - ((1 - P) ** n_period)
+                P_n_percent = P_n * 100
+                
                 # Vazão máxima de projeto pelo Método Racional: Q = C * i_max * A
-                # i_max deve estar na unidade correta (ex.: mm/h). Supondo que o resultado esteja em mm/h,
-                # convertemos para m/s: 1 mm/h = 2.78e-7 m/s.
+                # Supondo que i_max esteja em mm/h, convertemos para m/s: 1 mm/h = 2.78e-7 m/s.
                 i_max_ms = i_max * 2.78e-7
                 Q = C * i_max_ms * area_m2  # Vazão em m³/s
                 
@@ -205,8 +212,9 @@ elif menu == "Microdrenagem - Método Racional":
                 st.write(f"Tempo de Concentração (tc = td): **{tc:.2f} minutos**")
                 st.write(f"Intensidade Pluviométrica Máxima (i_max): **{i_max:.2f} mm/h**")
                 st.write(f"Vazão Máxima de Projeto (Q): **{Q:.3f} m³/s**")
+                st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{P_n_percent:.2f}%**")
     
-    # Botão para gerar relatório Word da vazão máxima
+    # Botão para gerar relatório Word da vazão máxima e demais resultados
     if st.button("📄 Gerar Relatório Word - Vazão Máxima"):
         if tc is None or i_max is None:
             st.error("Realize o cálculo primeiro para gerar o relatório.")
@@ -246,7 +254,14 @@ elif menu == "Microdrenagem - Método Racional":
             run_Q.font.size = Pt(11)
             run_Q.font.name = 'Aptos'
             p_Q.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-            p_Q.paragraph_format.space_after = Pt(12)
+            p_Q.paragraph_format.space_after = Pt(6)
+    
+            p_prob = doc.add_paragraph()
+            run_prob = p_prob.add_run(f"Probabilidade de ocorrência em {n_period} ano(s): {P_n_percent:.2f}%")
+            run_prob.font.size = Pt(11)
+            run_prob.font.name = 'Aptos'
+            p_prob.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+            p_prob.paragraph_format.space_after = Pt(12)
     
             doc.save("relatorio_vazao_maxima.docx")
     
