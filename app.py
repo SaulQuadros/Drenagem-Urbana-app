@@ -161,7 +161,7 @@ elif menu == "Microdrenagem - Método Racional":
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
                              ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
-    # Inputs para os modelos – L em km e H em m; a única conversão para m ocorre no cálculo de S quando necessário.
+    # Inputs para os modelos – L em km e H em m; a conversão para m ocorre apenas no cálculo de S quando necessário.
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
@@ -176,7 +176,7 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Van Te Chow")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # S = H / L (mantém L em km)
+        # S = H / L (L em km é mantido, sem conversão)
         S = H / L_km
         st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
     elif modelo_tc == "Giandotti":
@@ -224,12 +224,11 @@ elif menu == "Microdrenagem - Método Racional":
             K = 5.0
         elif terreno == terreno_options[5]:
             K = 5.5
-        st.session_state.tc = (10 / K) * (((A ** 0.3) * (L_km ** 0.2)) / ((S) ** 0.4))
+        st.session_state.tc = (10 / K) * (((A ** 0.3) * (L_km ** 0.2)) / (S ** 0.4))
     elif modelo_tc == "NRCS (SCS)":
         st.markdown("#### Parâmetros para a fórmula de NRCS (SCS)")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # S = H / L (L em km)
         S = H / L_km
         area_tipo = st.selectbox("Tipo de Área", ["Urbana", "Rural"])
         cond_area = st.selectbox("Condição da Área", ["Seco", "Úmido"])
@@ -272,7 +271,7 @@ elif menu == "Microdrenagem - Método Racional":
     C = st.number_input("Insira o valor de C", value=0.7, step=0.01)
     
     st.markdown("### Dados da Bacia para o Método Racional")
-    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
+    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001, key="area_km2_micro")
     area_m2 = area_km2_md * 1e6
     
     # Botão de cálculo
