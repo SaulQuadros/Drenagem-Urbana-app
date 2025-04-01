@@ -19,7 +19,7 @@ if "Q" not in st.session_state:
 if "P_n_percent" not in st.session_state:
     st.session_state.P_n_percent = None
 
-# Título no sidebar
+# Título no sidebar e menu
 st.sidebar.title("Drenagem Urbana")
 menu = st.sidebar.radio("Cálculos", 
                           ["Características - Bacia Hidrográfica Contribuição", 
@@ -107,7 +107,7 @@ if menu == "Características - Bacia Hidrográfica Contribuição":
       e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento. 
     ''')
     
-    # Geração do documento Word (mesma formatação já existente)
+    # Geração do documento Word para Drenagem Urbana
     if st.button('📄 Gerar Relatório Word - Drenagem Urbana'):
         doc = Document()
     
@@ -161,12 +161,12 @@ elif menu == "Microdrenagem - Método Racional":
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
                              ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
-    # Inputs para o modelo escolhido – para este exemplo, implementaremos a fórmula de Kirpich
+    # Inputs para o modelo escolhido – implementaremos a fórmula de Kirpich
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Cálculo do tempo de concentração (tc) em minutos conforme a nova fórmula:
+        # Cálculo do tempo de concentração (tc) em minutos conforme a fórmula:
         # t_c = 57 * ((L^3 / H)^0.385)
         st.session_state.tc = 57 * (((L_km ** 3) / H) ** 0.385)
     else:
@@ -177,7 +177,7 @@ elif menu == "Microdrenagem - Método Racional":
     a = st.number_input("Coeficiente a", value=1000.0, step=10.0)
     b = st.number_input("Coeficiente b", value=10.0, step=0.01)
     m = st.number_input("Expoente m", value=1.0, step=0.01)
-    expoente_n = st.number_input("Expoente n", value=1.0, step=0.01)
+    n = st.number_input("Expoente n", value=1.0, step=0.01)
     
     # Novos inputs para a equação de i_max e probabilidade
     T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
@@ -191,31 +191,34 @@ elif menu == "Microdrenagem - Método Racional":
     area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
     area_m2 = area_km2_md * 1e6
     
+    # Inicializa as variáveis de cálculo em session_state
+    st.session_state.i_max = None
+    st.session_state.Q = None
+    st.session_state.P_n_percent = None
+    
     # Botão de cálculo
     if st.button("Calcular"):
         if st.session_state.tc is None:
             st.error("Selecione um modelo de tempo de concentração implementado.")
         else:
-            # Considera que o tempo de duração da chuva (td) é igual ao tempo de concentração (tc)
+            # td igual a tc
             td = st.session_state.tc  
             # Nova equação da intensidade máxima: i_max = (a * T^m) / ((td + b)^n)
             try:
-                st.session_state.i_max = (a * (T ** m)) / ((td + b) ** expoente_n)
+                st.session_state.i_max = (a * (T ** m)) / ((td + b) ** n)
             except Exception as e:
                 st.error("Erro no cálculo da intensidade: verifique os valores inseridos.")
                 st.session_state.i_max = None
             
             if st.session_state.i_max is not None:
-                # Cálculo da probabilidade de ocorrência do evento crítico em n_period anos:
-                # P = 1/T; P_n = 1 - (1 - P)^n_period, expresso em %
+                # Probabilidade de ocorrência em n_period anos:
                 P = 1 / T
                 P_n = 1 - ((1 - P) ** n_period)
                 st.session_state.P_n_percent = P_n * 100
                 
-                # Vazão máxima de projeto pelo Método Racional: Q = C * i_max * A
-                # Supondo que i_max esteja em mm/h, convertemos para m/s: 1 mm/h = 2.78e-7 m/s.
+                # Vazão máxima: Q = C * i_max * A; conversão: 1 mm/h = 2.78e-7 m/s
                 i_max_ms = st.session_state.i_max * 2.78e-7
-                st.session_state.Q = C * i_max_ms * area_m2  # Vazão em m³/s
+                st.session_state.Q = C * i_max_ms * area_m2
                 
                 st.markdown("#### Resultados do Projeto")
                 st.write(f"Tempo de Concentração (tc = td): **{td:.2f} minutos**")
@@ -223,9 +226,8 @@ elif menu == "Microdrenagem - Método Racional":
                 st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
                 st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
     
-    # Botão para gerar relatório Word da vazão máxima e demais resultados
-    if st.button("📄 Gerar Relatório Word - Vazão Máxima"):
-        # Verifica se os valores necessários estão armazenados
+    # Botão para gerar relatório Word – agora com inclusão dos dados do projeto e dos resultados
+    if st.button("📄 Gerar Relatório Word - Microdrenagem"):
         if (st.session_state.tc is None or
             st.session_state.i_max is None or
             st.session_state.Q is None or
@@ -234,13 +236,15 @@ elif menu == "Microdrenagem - Método Racional":
         else:
             doc = Document()
     
+            # Configuração da página
             sec = doc.sections[0]
             sec.top_margin = Cm(2.0)
             sec.bottom_margin = Cm(2.0)
             sec.left_margin = Cm(2.5)
             sec.right_margin = Cm(2.5)
     
-            titulo = doc.add_heading('Relatório - Vazão Máxima de Projeto', 0)
+            # Título do relatório
+            titulo = doc.add_heading('Microdrenagem - Método Racional', 0)
             titulo.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
             titulo.runs[0].font.size = Pt(16)
             titulo.runs[0].bold = True
@@ -248,33 +252,37 @@ elif menu == "Microdrenagem - Método Racional":
     
             doc.add_paragraph()
     
-            p_tc = doc.add_paragraph()
-            run_tc = p_tc.add_run(f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos")
-            run_tc.font.size = Pt(11)
-            run_tc.font.name = 'Aptos'
-            p_tc.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-            p_tc.paragraph_format.space_after = Pt(6)
+            # Seção: Dados do Projeto
+            doc.add_heading('Dados do Projeto', level=2)
+            dados_projeto = [
+                f"Modelo de Cálculo do tc: {modelo_tc}",
+                f"Comprimento máximo do percurso d'água (km): {L_km}",
+                f"Desnível da bacia (m): {H}",
+                f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
+                f"Coeficiente a: {a}",
+                f"Coeficiente b: {b}",
+                f"Expoente m: {m}",
+                f"Expoente n: {n}",
+                f"Tempo de Retorno (T): {T} ano(s)",
+                f"Período de análise (n anos): {n_period}",
+                f"Coeficiente de Escoamento (C): {C}",
+                f"Área da Bacia (km²): {area_km2_md}"
+            ]
+            for item in dados_projeto:
+                p = doc.add_paragraph(item, style='List Bullet')
     
-            p_i_max = doc.add_paragraph()
-            run_i_max = p_i_max.add_run(f"Intensidade Pluviométrica Máxima (i_max): {st.session_state.i_max:.2f} mm/h")
-            run_i_max.font.size = Pt(11)
-            run_i_max.font.name = 'Aptos'
-            p_i_max.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-            p_i_max.paragraph_format.space_after = Pt(6)
+            doc.add_paragraph()  # Espaço entre seções
     
-            p_Q = doc.add_paragraph()
-            run_Q = p_Q.add_run(f"Vazão Máxima de Projeto (Q): {st.session_state.Q:.3f} m³/s")
-            run_Q.font.size = Pt(11)
-            run_Q.font.name = 'Aptos'
-            p_Q.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-            p_Q.paragraph_format.space_after = Pt(6)
-    
-            p_prob = doc.add_paragraph()
-            run_prob = p_prob.add_run(f"Probabilidade de ocorrência em {n_period} ano(s): {st.session_state.P_n_percent:.2f}%")
-            run_prob.font.size = Pt(11)
-            run_prob.font.name = 'Aptos'
-            p_prob.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-            p_prob.paragraph_format.space_after = Pt(12)
+            # Seção: Resultados
+            doc.add_heading('Resultados', level=2)
+            resultados_rel = [
+                f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
+                f"Intensidade Pluviométrica Máxima (i_max): {st.session_state.i_max:.2f} mm/h",
+                f"Vazão Máxima de Projeto (Q): {st.session_state.Q:.3f} m³/s",
+                f"Probabilidade de ocorrência em {n_period} ano(s): {st.session_state.P_n_percent:.2f}%"
+            ]
+            for item in resultados_rel:
+                p = doc.add_paragraph(item, style='List Bullet')
     
             doc.save("relatorio_vazao_maxima.docx")
     
