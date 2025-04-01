@@ -175,7 +175,7 @@ elif menu == "Microdrenagem - Método Racional":
     
     st.markdown("### Dados da Bacia para o Método Racional")
     # Reutiliza a área já definida para a bacia (em km²) – converte para m²
-    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.1, value=10.0, step=0.001)
+    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=10.0, step=0.001)
     area_m2 = area_km2_md * 1e6
     
     # Botão de cálculo
