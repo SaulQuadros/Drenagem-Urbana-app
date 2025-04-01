@@ -9,20 +9,13 @@ from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
-# Configurar estado da aplicação para o menu ativo, se ainda não existir
-if "menu_ativo" not in st.session_state:
-    st.session_state.menu_ativo = "Característica - Bacia"
-
 # Título no sidebar
 st.sidebar.title("Drenagem Urbana")
-# Lista de opções para os cálculos
-opcao = st.sidebar.selectbox("Cálculos", 
-                             ["Característica - Bacia", "Microdrenagem - Método Racional"], index=0)
-# Botão para ativar a opção escolhida
-if st.sidebar.button("Ativar Cálculos"):
-    st.session_state.menu_ativo = opcao
+menu = st.sidebar.radio("Cálculos", 
+                          ["Características - Bacia Hidrográfica Contribuição", 
+                           "Microdrenagem - Método Racional"])
 
-if st.session_state.menu_ativo == "Característica - Bacia":
+if menu == "Características - Bacia Hidrográfica Contribuição":
     st.title('Calculadora de Parâmetros de Bacia Hidrográfica')
     
     st.sidebar.header('Insira os dados da bacia')
@@ -112,6 +105,7 @@ if st.session_state.menu_ativo == "Característica - Bacia":
         sec.top_margin = Cm(2.0)
         sec.bottom_margin = Cm(2.0)
         sec.left_margin = Cm(2.5)
+        sec.right_margin = Cm(2.0)  # Note: aqui se usava 2.5, mantendo conforme o padrão
         sec.right_margin = Cm(2.5)
     
         titulo = doc.add_heading('Relatório de Parâmetros da Bacia Hidrográfica', 0)
@@ -150,7 +144,7 @@ if st.session_state.menu_ativo == "Característica - Bacia":
         with open("relatorio_bacia.docx", "rb") as f:
             st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_bacia.docx")
 
-elif st.session_state.menu_ativo == "Microdrenagem - Método Racional":
+elif menu == "Microdrenagem - Método Racional":
     st.title("Microdrenagem - Método Racional")
     
     st.markdown("### Escolha do Modelo de Tempo de Concentração")
