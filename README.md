@@ -19,4 +19,4 @@ streamlit run app.py
 
 ## Autor
 
-Projeto desenvolvido com base nas orientações fornecidas pelo usuário e adequado para uso educacional e técnico em hidrologia.
+Projeto desenvolvido para uso educacional e técnico em hidrologia e sistemas de drenagem, orientado para curso de Engenharia Civil.
