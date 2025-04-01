@@ -164,17 +164,17 @@ elif menu == "Microdrenagem - Método Racional":
         tc = None
     
     st.markdown("### Dados para o Cálculo da Intensidade Pluviométrica Máxima")
-    a = st.number_input("Coeficiente a", value=1.0, step=0.1)
-    b = st.number_input("Coeficiente b", value=0.0, step=0.1)
-    m = st.number_input("Expoente m", value=0.0, step=0.1)
-    n = st.number_input("Expoente n", value=0.0, step=0.1)
+    a = st.number_input("Coeficiente a", value=1000.0, step=1)
+    b = st.number_input("Coeficiente b", value=0.0, step=0.01)
+    m = st.number_input("Expoente m", value=1.0, step=0.01)
+    n = st.number_input("Expoente n", value=1.0, step=0.01)
     
     st.markdown("### Coeficiente de Escoamento Superficial (C)")
     C = st.number_input("Insira o valor de C", value=0.7, step=0.01)
     
     st.markdown("### Dados da Bacia para o Método Racional")
     # Reutiliza a área já definida para a bacia (em km²) – converte para m²
-    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.1, value=10.0, step=0.1)
+    area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.1, value=10.0, step=0.001)
     area_m2 = area_km2_md * 1e6
     
     # Botão de cálculo
