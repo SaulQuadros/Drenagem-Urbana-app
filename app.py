@@ -157,7 +157,6 @@ elif menu == "Microdrenagem - Método Racional":
     st.title("Microdrenagem - Método Racional")
     
     st.markdown("### Escolha do Modelo de Tempo de Concentração")
-    # Seleção do modelo
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
                              ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
@@ -176,14 +175,15 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Van Te Chow")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # S = H / L (L em km é mantido, sem conversão)
+        # S = H / L (L permanece em km)
         S = H / L_km
         st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
     elif modelo_tc == "Giandotti":
         st.markdown("#### Parâmetros para a fórmula de Giandotti")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        A = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
+        # Aqui, A será utilizada a partir da seção "Dados da Bacia para o Método Racional"
+        A = st.session_state.get("area_km2_micro", 1.0)
         st.session_state.tc = 60 * ((4 * (A ** 0.5) + 1.5 * L_km) / (0.8 * (H ** 0.5)))
     elif modelo_tc == "Piking":
         st.markdown("#### Parâmetros para a fórmula de Piking")
@@ -202,7 +202,10 @@ elif menu == "Microdrenagem - Método Racional":
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
         S = H / L_km
-        A = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001)
+        # Utiliza a área da bacia informada em "Dados da Bacia para o Método Racional"
+        A = st.session_state.get("area_km2_micro", 1.0)
+        st.session_state.tc = (10 /  K)  # Será definido abaixo
+        # Para DNOS, o usuário deve escolher o tipo de terreno para definir K
         terreno_options = [
             "arenoso-argiloso, coberto de vegetação intensa, elevada absorção",
             "comum, coberto de vegetação, absorção apreciável",
