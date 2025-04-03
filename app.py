@@ -4,7 +4,7 @@
 # In[ ]:
 
 
-import streamlit as st
+import streamlit as st 
 from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
@@ -18,6 +18,12 @@ if "Q" not in st.session_state:
     st.session_state.Q = None
 if "P_n_percent" not in st.session_state:
     st.session_state.P_n_percent = None
+
+# Dados do Projeto (adicionados no sidebar)
+st.sidebar.title("Dados do Projeto")
+nome_projeto = st.sidebar.text_input("Nome do Projeto", max_chars=100)
+tecnico = st.sidebar.text_input("Técnico Responsável", max_chars=100)
+resumo = st.sidebar.text_area("Resumo", max_chars=200, height=90)
 
 # Título no sidebar e menu
 st.sidebar.title("Drenagem Urbana")
@@ -226,7 +232,7 @@ elif menu == "Microdrenagem - Método Racional":
             K = 5.0
         elif terreno == terreno_options[5]:
             K = 5.5
-        st.session_state.tc = (10 / K) * (((A ** 0.3) * (L_km ** 0.2)) / (S ** 0.4))
+        st.session_state.tc = (10 / K) * (((100 * A ** 0.3) * (L_km ** 0.2)) / (S ** 0.4))
     elif modelo_tc == "NRCS (SCS)":
         st.markdown("#### Parâmetros para a fórmula de NRCS (SCS)")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
@@ -283,87 +289,5 @@ elif menu == "Microdrenagem - Método Racional":
         else:
             td = st.session_state.tc  # Considera td = tc
             try:
-                st.session_state.i_max = (a * (T ** m)) / ((td + b) ** n)
-            except Exception as e:
-                st.error("Erro no cálculo da intensidade: verifique os valores inseridos.")
-                st.session_state.i_max = None
-            
-            if st.session_state.i_max is not None:
-                P = 1 / T
-                P_n = 1 - ((1 - P) ** n_period)
-                st.session_state.P_n_percent = P_n * 100
-                
-                i_max_ms = st.session_state.i_max * 2.78e-7
-                st.session_state.Q = C * i_max_ms * area_m2
-                
-                st.markdown("#### Resultados do Projeto")
-                st.write(f"Tempo de Concentração (tc = td): **{td:.2f} minutos**")
-                st.write(f"Intensidade Pluviométrica Máxima (i_max): **{st.session_state.i_max:.2f} mm/h**")
-                st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
-                st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
-    
-    if st.button("📄 Gerar Relatório Word - Microdrenagem"):
-        if (st.session_state.tc is None or
-            st.session_state.i_max is None or
-            st.session_state.Q is None or
-            st.session_state.P_n_percent is None):
-            st.error("Realize o cálculo primeiro para gerar o relatório.")
-        else:
-            doc = Document()
-            sec = doc.sections[0]
-            sec.top_margin = Cm(2.0)
-            sec.bottom_margin = Cm(2.0)
-            sec.left_margin = Cm(2.5)
-            sec.right_margin = Cm(2.5)
-    
-            titulo = doc.add_heading('Microdrenagem - Método Racional', 0)
-            titulo.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-            titulo.runs[0].font.size = Pt(16)
-            titulo.runs[0].bold = True
-            titulo.runs[0].font.name = 'Aptos'
-    
-            doc.add_paragraph()
-    
-            # Seção: Dados do Projeto
-            doc.add_heading('Dados do Projeto', level=2)
-            dados_projeto = [
-                f"Modelo de Cálculo do tc: {modelo_tc}",
-                f"Comprimento máximo do percurso d'água (km): {L_km}",
-                f"Desnível da bacia (m): {H}",
-                f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
-                f"Coeficiente a: {a}",
-                f"Coeficiente b: {b}",
-                f"Expoente m: {m}",
-                f"Expoente n: {n}",
-                f"Tempo de Retorno (T): {T} ano(s)",
-                f"Período de análise (n anos): {n_period}",
-                f"Coeficiente de Escoamento (C): {C}",
-                f"Área da Bacia (km²): {area_km2_md}"
-            ]
-            for item in dados_projeto:
-                doc.add_paragraph(item, style='List Bullet')
-    
-            doc.add_paragraph()  # Espaço entre seções
-    
-            # Seção: Resultados
-            doc.add_heading('Resultados', level=2)
-            resultados_rel = [
-                f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
-                f"Intensidade Pluviométrica Máxima (i_max): {st.session_state.i_max:.2f} mm/h",
-                f"Vazão Máxima de Projeto (Q): {st.session_state.Q:.3f} m³/s",
-                f"Probabilidade de ocorrência em {n_period} ano(s): {st.session_state.P_n_percent:.2f}%"
-            ]
-            for item in resultados_rel:
-                doc.add_paragraph(item, style='List Bullet')
-    
-            doc.save("relatorio_vazao_maxima.docx")
-    
-            with open("relatorio_vazao_maxima.docx", "rb") as f:
-                st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_vazao_maxima.docx")
-            
-            st.markdown("#### Resultados do Projeto (mantidos na tela)")
-            st.write(f"Tempo de Concentração (tc = td): **{st.session_state.tc:.2f} minutos**")
-            st.write(f"Intensidade Pluviométrica Máxima (i_max): **{st.session_state.i_max:.2f} mm/h**")
-            st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
-            st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
+                st.session_state.i
 
