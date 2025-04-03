@@ -19,25 +19,29 @@ if "Q" not in st.session_state:
 if "P_n_percent" not in st.session_state:
     st.session_state.P_n_percent = None
 
-# --- MENU PRINCIPAL ---
+# Título na barra lateral
 st.sidebar.title("Drenagem Urbana")
-opcao_principal = st.sidebar.radio("Selecione a Seção", ["Dados do Projeto", "Cálculos"])
+
+# Opções de menu em nível superior
+opcao_principal = st.sidebar.radio(
+    "Selecione a Opção",
+    ["Dados do Projeto", "Cálculos"],
+    index=0
+)
 
 # --- DADOS DO PROJETO ---
 if opcao_principal == "Dados do Projeto":
-    submenu = st.sidebar.radio("Selecione a Opção", ["Informações"])
+    st.title("Dados do Projeto")
     
-    if submenu == "Informações":
-        st.title("Dados do Projeto - Informações")
-        
-        # Campos de entrada relacionados ao Projeto
-        nome_projeto = st.text_input("Nome do Projeto", max_chars=100)
-        tecnico = st.text_input("Técnico Responsável", max_chars=100)
-        resumo = st.text_area("Resumo", max_chars=200, height=90)
+    # Campos de entrada relacionados ao Projeto
+    nome_projeto = st.text_input("Nome do Projeto", max_chars=100)
+    tecnico = st.text_input("Técnico Responsável", max_chars=100)
+    resumo = st.text_area("Resumo", max_chars=200, height=90)
 
 # --- CÁLCULOS ---
 elif opcao_principal == "Cálculos":
-    menu = st.sidebar.radio("Cálculos", 
+    # Submenu com os tipos de cálculos disponíveis
+    menu = st.sidebar.radio("Selecione o tipo de Cálculo", 
                             ["Características - Bacia Hidrográfica Contribuição", 
                              "Microdrenagem - Método Racional"])
     
