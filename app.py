@@ -188,7 +188,7 @@ elif menu == "Microdrenagem - Método Racional":
     
     st.markdown("### Escolha do Modelo de Tempo de Concentração")
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
-                             ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
+                             ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
     # Inputs para os modelos – L em km e H em m; a conversão para m ocorre apenas no cálculo de S quando necessário.
     if modelo_tc == "Kirpich":
@@ -208,13 +208,12 @@ elif menu == "Microdrenagem - Método Racional":
         # S = H / L (L permanece em km)
         S = H / (L_km * 1000)
         st.session_state.tc = 5,773* ((L_km / (S ** 0.5)) ** 0.64)
-    elif modelo_tc == "Giandotti":
-        st.markdown("#### Parâmetros para a fórmula de Giandotti")
-        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Aqui, A será utilizada a partir da seção "Dados da Bacia para o Método Racional"
-        A = st.session_state.get("area_km2_micro", 1.0)
-        st.session_state.tc = 60 * ((4 * (A ** 0.5) + 1.5 * L_km) / (0.8 * (H ** 0.5)))
+    elif modelo_tc == "George Ribeiro":
+            st.markdown("#### Parâmetros para a fórmula de George Ribeiro")
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            S = H / (L_km * 1000)
+            pr = st.number_input("Parâmetro (pr) - Porção da bacia coberta por vegetação", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
     elif modelo_tc == "Piking":
         st.markdown("#### Parâmetros para a fórmula de Piking")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
@@ -297,7 +296,7 @@ elif menu == "Microdrenagem - Método Racional":
     n = st.number_input("Expoente n", value=1.0, step=0.01)
     
     # Novos inputs para a equação de i_max e probabilidade
-    T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
+    T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=10, step=1)
     n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1)
     
     st.markdown("### Coeficiente de Escoamento Superficial (C)")
