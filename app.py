@@ -19,13 +19,11 @@ if "Q" not in st.session_state:
 if "P_n_percent" not in st.session_state:
     st.session_state.P_n_percent = None
 
-# Inicializa os campos dos Dados do Projeto, se não existirem
+# Inicializa os campos de Dados do Projeto, se não existirem
 if "nome_projeto" not in st.session_state:
     st.session_state.nome_projeto = ""
 if "tecnico" not in st.session_state:
     st.session_state.tecnico = ""
-if "resumo" not in st.session_state:
-    st.session_state.resumo = ""
 
 # (Opcional) Inicializa outros campos que serão usados em Cálculos
 if "area_km2_bacia" not in st.session_state:
@@ -41,16 +39,16 @@ if "comprimento_total_cursos_agua_km" not in st.session_state:
 if "desnivel_m" not in st.session_state:
     st.session_state.desnivel_m = 10.0
 
-# ---------------- Funções das Páginas ----------------
-
-def page_dados_projeto():
-    st.title("Dados do Projeto")
-    st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
-    st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
-    st.text_area("Resumo", max_chars=200, height=90, key="resumo")
+# ------------------- Funções das Páginas -------------------
 
 def page_caracteristica_bacia():
-    st.title("Parâmetros de Bacia Hidrográfica")
+    st.title("Característica da Bacia")
+    # Exibe os campos de Dados do Projeto no início
+    st.header("Dados do Projeto")
+    st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
+    st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
+    
+    st.header("Parâmetros de Bacia Hidrográfica")
     st.sidebar.header("Insira os dados da bacia")
     area_km2 = st.sidebar.number_input("Área da Bacia (km²)", min_value=10.0, format="%.2f", key="area_km2_bacia")
     perimetro_km = st.sidebar.number_input("Perímetro da Bacia (km)", min_value=20.0, format="%.2f", key="perimetro_km")
@@ -85,11 +83,10 @@ def page_caracteristica_bacia():
         sec.left_margin = Cm(2.5)
         sec.right_margin = Cm(2.5)
         
-        # Dados do Projeto
+        # Dados do Projeto incluídos no relatório
         doc.add_heading("Dados do Projeto", level=1)
         doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
         doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
-        doc.add_paragraph(f"Resumo: {st.session_state.get('resumo', 'Não informado')}")
         doc.add_paragraph()
         
         doc.add_heading("Relatório de Parâmetros da Bacia Hidrográfica", 0)
@@ -105,6 +102,12 @@ def page_caracteristica_bacia():
 
 def page_microdrenagem():
     st.title("Microdrenagem - Método Racional")
+    # Exibe os dados do projeto
+    st.header("Dados do Projeto")
+    st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
+    st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
+    
+    st.header("Microdrenagem - Método Racional")
     modelo_options = ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"]
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:", modelo_options, key="modelo_tc")
     
@@ -268,7 +271,6 @@ def page_microdrenagem():
             doc.add_heading("Dados do Projeto", level=1)
             doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
             doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
-            doc.add_paragraph(f"Resumo: {st.session_state.get('resumo', 'Não informado')}")
             doc.add_paragraph()
             
             titulo = doc.add_heading("Microdrenagem - Método Racional", 0)
@@ -319,21 +321,16 @@ def page_microdrenagem():
             st.write(f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): **{st.session_state.P_n_percent:.2f}%**")
 
 # ---------------- Navegação Principal ----------------
-
-# Definindo as páginas disponíveis
-page_options = ["Dados do Projeto", "Cálculos"]
+# Como agora só há "Cálculos", utilizamos diretamente essa página
+page_options = ["Cálculos"]
 page = st.sidebar.selectbox("Selecione a Página", page_options, key="page_select")
 
-if page == "Dados do Projeto":
-    page_dados_projeto()
-elif page == "Cálculos":
-    # Chamamos a função que gerencia o submenu de cálculos
-    def page_calculos():
-        submenu_options = ["Característica da Bacia", "Microdrenagem - Método Racional"]
-        submenu = st.sidebar.radio("Selecione o tipo de Cálculo", submenu_options, key="submenu_calculos")
-        if submenu == "Característica da Bacia":
-            page_caracteristica_bacia()
-        elif submenu == "Microdrenagem - Método Racional":
-            page_microdrenagem()
-    page_calculos()
+if page == "Cálculos":
+    # Define o submenu para os cálculos
+    submenu_options = ["Característica da Bacia", "Microdrenagem - Método Racional"]
+    submenu = st.sidebar.radio("Selecione o tipo de Cálculo", submenu_options, key="submenu_calculos")
+    if submenu == "Característica da Bacia":
+        page_caracteristica_bacia()
+    elif submenu == "Microdrenagem - Método Racional":
+        page_microdrenagem()
 
