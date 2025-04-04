@@ -30,12 +30,12 @@ if menu == "Características da Bacia":
     
     st.sidebar.header('Insira os dados da bacia')
     # Inputs com padronização das unidades
-    area_km2 = st.sidebar.number_input('Área da Bacia (km²)', min_value=10.0, format="%.2f")
-    perimetro_km = st.sidebar.number_input('Perímetro da Bacia (km)', min_value=20.0, format="%.2f")
-    comprimento_curso_principal_km = st.sidebar.number_input('Comprimento do Curso Principal (km)', min_value=2.0, format="%.2f")
-    comprimento_retalinea_km = st.sidebar.number_input('Comprimento em Linha Reta (km)', min_value=1.5, format="%.2f")
-    comprimento_total_cursos_agua_km = st.sidebar.number_input("Comprimento Total dos Cursos d'Água (km)", min_value=4.0, format="%.2f")
-    desnivel_m = st.sidebar.number_input('Desnível da Bacia (m)', min_value=10.0, format="%.2f")
+    area_km2 = st.sidebar.number_input('Área da Bacia (km²)', min_value=0.01, value=4.5, step=0.01, format="%.2f")
+    perimetro_km = st.sidebar.number_input('Perímetro da Bacia (km)', min_value=0.1, value=9.6, step=0.1, format="%.2f")
+    comprimento_curso_principal_km = st.sidebar.number_input('Comprimento do Curso Principal (km)', min_value=0.1, value=3.2, step=0.1, format="%.2f")
+    comprimento_retalinea_km = st.sidebar.number_input('Comprimento em Linha Reta (km)', min_value=0.1, value=2.5, step=0.1, format="%.2f")
+    comprimento_total_cursos_agua_km = st.sidebar.number_input("Comprimento Total dos Cursos d'Água (km)", min_value=1, value=9.0, step=0.1, format="%.2f")
+    desnivel_m = st.sidebar.number_input('Desnível da Bacia (m)', min_value=1, value=25, step=1, format="%.2f")
     
     # Cálculos dos parâmetros
     kf = area_km2 / (comprimento_curso_principal_km ** 2)
