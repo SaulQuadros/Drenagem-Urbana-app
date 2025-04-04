@@ -107,7 +107,12 @@ if menu == "Características da Bacia":
       e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento. 
     ''')
     
-    # Geração do documento Word para Bacia Hidrográfica de Contribuição
+    # Inserindo os campos "Dados do Projeto" ao final do submenu "Características da Bacia"
+    st.markdown("### Dados do Projeto")
+    nome_projeto = st.text_input("Nome do Projeto")
+    tecnico_responsavel = st.text_input("Técnico Responsável")
+    
+    # Botão de geração do relatório Word agora reposicionado para ficar ao final, após os campos de Dados do Projeto
     if st.button('📄 Gerar Relatório Word - Parâmetros Bacia'):
         doc = Document()
     
@@ -156,11 +161,6 @@ if menu == "Características da Bacia":
     
         with open("relatorio_bacia.docx", "rb") as f:
             st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_bacia.docx")
-    
-    # Inserindo os campos "Dados do Projeto" ao final do submenu "Características da Bacia"
-    st.markdown("### Dados do Projeto")
-    nome_projeto = st.text_input("Nome do Projeto")
-    tecnico_responsavel = st.text_input("Técnico Responsável")
 
 elif menu == "Microdrenagem - Método Racional":
     st.title("Microdrenagem - Método Racional")
