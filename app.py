@@ -9,81 +9,76 @@ from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
-# Função para a página "Dados do Projeto"
+# Inicializa os valores no st.session_state se não existirem
+if "tc" not in st.session_state:
+    st.session_state.tc = None
+if "i_max" not in st.session_state:
+    st.session_state.i_max = None
+if "Q" not in st.session_state:
+    st.session_state.Q = None
+if "P_n_percent" not in st.session_state:
+    st.session_state.P_n_percent = None
+
+# Inicializa os campos dos Dados do Projeto, se não existirem
+if "nome_projeto" not in st.session_state:
+    st.session_state.nome_projeto = ""
+if "tecnico" not in st.session_state:
+    st.session_state.tecnico = ""
+if "resumo" not in st.session_state:
+    st.session_state.resumo = ""
+
+# (Opcional) Inicializa outros campos que serão usados em Cálculos
+if "area_km2_bacia" not in st.session_state:
+    st.session_state.area_km2_bacia = 10.0
+if "perimetro_km" not in st.session_state:
+    st.session_state.perimetro_km = 20.0
+if "comprimento_curso_principal_km" not in st.session_state:
+    st.session_state.comprimento_curso_principal_km = 2.0
+if "comprimento_retalinea_km" not in st.session_state:
+    st.session_state.comprimento_retalinea_km = 1.5
+if "comprimento_total_cursos_agua_km" not in st.session_state:
+    st.session_state.comprimento_total_cursos_agua_km = 4.0
+if "desnivel_m" not in st.session_state:
+    st.session_state.desnivel_m = 10.0
+
+# ------------------- Funções das páginas -------------------
+
 def page_dados_projeto():
     st.title("Dados do Projeto")
-    # Esses widgets não definem o parâmetro "value"; se já houver valor no st.session_state, ele é usado.
     st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
     st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
     st.text_area("Resumo", max_chars=200, height=90, key="resumo")
-
-# Função para a página "Cálculos"
-def page_calculos():
-    # Submenu para os cálculos
-    calculo_options = ["Característica da Bacia", "Microdrenagem - Método Racional"]
-    submenu = st.sidebar.radio("Selecione o tipo de Cálculo", calculo_options, key="submenu_calculos")
     
-    if submenu == "Característica da Bacia":
-        page_caracteristica_bacia()
-    elif submenu == "Microdrenagem - Método Racional":
-        page_microdrenagem()
-
-# Função para "Característica da Bacia"
 def page_caracteristica_bacia():
-    st.title('Parâmetros de Bacia Hidrográfica')
-    st.sidebar.header('Insira os dados da bacia')
-    area_km2 = st.sidebar.number_input('Área da Bacia (km²)', min_value=10.0, format="%.2f", key="area_km2_bacia")
-    perimetro_km = st.sidebar.number_input('Perímetro da Bacia (km)', min_value=20.0, format="%.2f", key="perimetro_km")
-    comprimento_curso_principal_km = st.sidebar.number_input('Comprimento do Curso Principal (km)', min_value=2.0, format="%.2f", key="comprimento_curso_principal_km")
-    comprimento_retalinea_km = st.sidebar.number_input('Comprimento em Linha Reta (km)', min_value=1.5, format="%.2f", key="comprimento_retalinea_km")
+    st.title("Parâmetros de Bacia Hidrográfica")
+    st.sidebar.header("Insira os dados da bacia")
+    area_km2 = st.sidebar.number_input("Área da Bacia (km²)", min_value=10.0, format="%.2f", key="area_km2_bacia")
+    perimetro_km = st.sidebar.number_input("Perímetro da Bacia (km)", min_value=20.0, format="%.2f", key="perimetro_km")
+    comprimento_curso_principal_km = st.sidebar.number_input("Comprimento do Curso Principal (km)", min_value=2.0, format="%.2f", key="comprimento_curso_principal_km")
+    comprimento_retalinea_km = st.sidebar.number_input("Comprimento em Linha Reta (km)", min_value=1.5, format="%.2f", key="comprimento_retalinea_km")
     comprimento_total_cursos_agua_km = st.sidebar.number_input("Comprimento Total dos Cursos d'Água (km)", min_value=4.0, format="%.2f", key="comprimento_total_cursos_agua_km")
-    desnivel_m = st.sidebar.number_input('Desnível da Bacia (m)', min_value=10.0, format="%.2f", key="desnivel_m")
+    desnivel_m = st.sidebar.number_input("Desnível da Bacia (m)", min_value=10.0, format="%.2f", key="desnivel_m")
     
-    # Cálculos dos parâmetros
+    # Cálculos
     kf = area_km2 / (comprimento_curso_principal_km ** 2)
     kc = 0.28 * perimetro_km / (area_km2 ** 0.5)
     dd = comprimento_total_cursos_agua_km / area_km2
     lm = area_km2 / (4 * comprimento_total_cursos_agua_km)
     sc = comprimento_curso_principal_km / comprimento_retalinea_km
     dc = (desnivel_m / (comprimento_curso_principal_km * 1000)) * 100
-
-    resultados = [
-        ("Coeficiente de Forma (Kf)", kf,
-         "quanto mais próximo de 1, mais arredondada é a bacia, indicando picos de vazões mais elevados e maior tendência para enchentes rápidas, sendo o oposto para valores que se aproximam de 0."),
-        ("Coeficiente de Compacidade (Kc)", kc,
-         "quanto mais próximo de 1, mais circular é o formato da bacia e favorece o escoamento com altos picos de vazão, sendo a bacia mais sujeita a inundações rápidas, sendo o oposto para valores que se afastam de 1."),
-        ("Densidade de Drenagem (Dd)", dd,
-         "valores maiores que 1 indicam maior rapidez no escoamento superficial e menor infiltração, com maior risco de enchentes, e o inverso para valores menores que 1."),
-        ("Extensão Média do Escoamento (lm)", lm,
-         "valores entre 100m e 250m indicam uma bacia com drenagem moderada, com equilíbrio entre infiltração e escoamento superficial, contudo, abaixo de 100 m, o escoamento superficial tende a ser rápido com pico de vazões elevados, e acima de 250 m o inverso."),
-        ("Índice de Sinuosidade (Sc)", sc,
-         "valores próximos de 1 indicam canais mais retos e maior eficiência de drenagem, portanto, quanto maior o valor maior a sinuosidade e com isso, maior risco de enchentes."),
-        ("Declividade do Curso d'água Principal (Dc)", dc,
-         "valores abaixo de 1% indicam maior risco de enchentes, pois a drenagem é demorada, sendo rios de planícies, e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento.")
-    ]
     
-    st.header('Resultados dos Parâmetros da Bacia')
-    st.markdown(f'''
-    - **Coeficiente de Forma (Kf)**: {kf:.3f}  
-      **Interpretação**: {resultados[0][2]}
+    st.header("Resultados dos Parâmetros da Bacia")
+    st.markdown(f"""
+    - **Coeficiente de Forma (Kf)**: {kf:.3f}
+    - **Coeficiente de Compacidade (Kc)**: {kc:.3f}
+    - **Densidade de Drenagem (Dd)**: {dd:.3f} km/km²
+    - **Extensão Média do Escoamento (lm)**: {lm:.3f} km
+    - **Índice de Sinuosidade (Sc)**: {sc:.3f}
+    - **Declividade do Curso d'água Principal (Dc)**: {dc:.3f}%
+    """)
     
-    - **Coeficiente de Compacidade (Kc)**: {kc:.3f}  
-      **Interpretação**: {resultados[1][2]}
-    
-    - **Densidade de Drenagem (Dd)**: {dd:.3f} km/km²  
-      **Interpretação**: {resultados[2][2]}
-    
-    - **Extensão Média do Escoamento (lm)**: {lm:.3f} km  
-      **Interpretação**: {resultados[3][2]}
-    
-    - **Índice de Sinuosidade (Sc)**: {sc:.3f}  
-      **Interpretação**: {resultados[4][2]}
-    
-    - **Declividade do Curso d'água Principal (Dc)**: {dc:.3f}%  
-      **Interpretação**: {resultados[5][2]}
-    ''')
-
-    if st.button('📄 Gerar Relatório Word - Parâmetros da Bacia', key="bt_rel_bacia"):
+    # Geração do relatório em Word
+    if st.button("📄 Gerar Relatório Word - Parâmetros da Bacia", key="bt_rel_bacia"):
         doc = Document()
         sec = doc.sections[0]
         sec.top_margin = Cm(2.0)
@@ -92,53 +87,29 @@ def page_caracteristica_bacia():
         sec.right_margin = Cm(2.5)
         
         # Dados do Projeto
-        doc.add_heading('Dados do Projeto', level=1)
+        doc.add_heading("Dados do Projeto", level=1)
         doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
         doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
         doc.add_paragraph(f"Resumo: {st.session_state.get('resumo', 'Não informado')}")
         doc.add_paragraph()
         
-        titulo = doc.add_heading('Relatório de Parâmetros da Bacia Hidrográfica', 0)
-        titulo.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        titulo.runs[0].font.size = Pt(16)
-        titulo.runs[0].bold = True
-        titulo.runs[0].font.name = 'Aptos'
-        doc.add_paragraph()
-        
-        for nome, valor, interpretacao in resultados:
-            p_param = doc.add_paragraph()
-            run_param = p_param.add_run(f"{nome}: ")
-            run_param.bold = True
-            run_param.font.size = Pt(11)
-            run_param.font.name = 'Aptos'
-            run_valor = p_param.add_run(f"{valor:.3f}")
-            run_valor.font.size = Pt(11)
-            run_valor.font.name = 'Aptos'
-            p_param.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-            p_param.paragraph_format.space_after = Pt(6)
-            
-            p_interp = doc.add_paragraph()
-            run_interp_label = p_interp.add_run("Interpretação: ")
-            run_interp_label.bold = True
-            run_interp_label.font.size = Pt(11)
-            run_interp_label.font.name = 'Aptos'
-            run_interp_text = p_interp.add_run(interpretacao)
-            run_interp_text.font.size = Pt(11)
-            run_interp_text.font.name = 'Aptos'
-            p_interp.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
-            p_interp.paragraph_format.space_after = Pt(12)
-        
+        doc.add_heading("Relatório de Parâmetros da Bacia Hidrográfica", 0)
+        doc.add_paragraph(f"Coeficiente de Forma (Kf): {kf:.3f}")
+        doc.add_paragraph(f"Coeficiente de Compacidade (Kc): {kc:.3f}")
+        doc.add_paragraph(f"Densidade de Drenagem (Dd): {dd:.3f} km/km²")
+        doc.add_paragraph(f"Extensão Média do Escoamento (lm): {lm:.3f} km")
+        doc.add_paragraph(f"Índice de Sinuosidade (Sc): {sc:.3f}")
+        doc.add_paragraph(f"Declividade do Curso d'água Principal (Dc): {dc:.3f}%")
         doc.save("relatorio_bacia.docx")
         with open("relatorio_bacia.docx", "rb") as f:
             st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_bacia.docx")
-
-# Página para "Microdrenagem - Método Racional"
+            
 def page_microdrenagem():
     st.title("Microdrenagem - Método Racional")
     modelo_options = ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"]
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:", modelo_options, key="modelo_tc")
     
-    # Inputs para os modelos – L em km e H em m
+    # Com base no modelo selecionado, exibe os inputs correspondentes
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km")
@@ -233,7 +204,7 @@ def page_microdrenagem():
     else:
         st.info("Selecione um modelo válido.")
         st.session_state.tc = None
-
+        
     st.markdown("### Dados para o Cálculo da Intensidade Pluviométrica Máxima")
     a = st.number_input("Coeficiente a", value=1000.0, step=10.0, key="a")
     b = st.number_input("Coeficiente b", value=10.0, step=0.01, key="b")
@@ -276,28 +247,18 @@ def page_microdrenagem():
                 st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
     
     if st.button("📄 Gerar Relatório Word - Microdrenagem", key="bt_rel_micro"):
-        if (st.session_state.tc is None or
-            st.session_state.i_max is None or
-            st.session_state.Q is None or
-            st.session_state.P_n_percent is None):
+        if (st.session_state.tc is None or st.session_state.i_max is None or
+            st.session_state.Q is None or st.session_state.P_n_percent is None):
             st.error("Realize o cálculo primeiro para gerar o relatório.")
         else:
-            L_km_val = (st.session_state.get('L_km') or 
-                        st.session_state.get('L_km_mod') or 
-                        st.session_state.get('L_km_vtc') or 
-                        st.session_state.get('L_km_gr') or 
-                        st.session_state.get('L_km_piking') or 
-                        st.session_state.get('L_km_usace') or 
-                        st.session_state.get('L_km_dnos') or 
-                        st.session_state.get('L_km_nrcs') or '')
-            H_val = (st.session_state.get('H') or 
-                     st.session_state.get('H_mod') or 
-                     st.session_state.get('H_vtc') or 
-                     st.session_state.get('H_gr') or 
-                     st.session_state.get('H_piking') or 
-                     st.session_state.get('H_usace') or 
-                     st.session_state.get('H_dnos') or 
-                     st.session_state.get('H_nrcs') or '')
+            L_km_val = (st.session_state.get('L_km') or st.session_state.get('L_km_mod') or 
+                        st.session_state.get('L_km_vtc') or st.session_state.get('L_km_gr') or 
+                        st.session_state.get('L_km_piking') or st.session_state.get('L_km_usace') or 
+                        st.session_state.get('L_km_dnos') or st.session_state.get('L_km_nrcs') or '')
+            H_val = (st.session_state.get('H') or st.session_state.get('H_mod') or 
+                     st.session_state.get('H_vtc') or st.session_state.get('H_gr') or 
+                     st.session_state.get('H_piking') or st.session_state.get('H_usace') or 
+                     st.session_state.get('H_dnos') or st.session_state.get('H_nrcs') or '')
             
             doc = Document()
             sec = doc.sections[0]
@@ -306,21 +267,20 @@ def page_microdrenagem():
             sec.left_margin = Cm(2.5)
             sec.right_margin = Cm(2.5)
             
-            doc.add_heading('Dados do Projeto', level=1)
+            doc.add_heading("Dados do Projeto", level=1)
             doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
             doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
             doc.add_paragraph(f"Resumo: {st.session_state.get('resumo', 'Não informado')}")
             doc.add_paragraph()
             
-            titulo = doc.add_heading('Microdrenagem - Método Racional', 0)
+            titulo = doc.add_heading("Microdrenagem - Método Racional", 0)
             titulo.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
             titulo.runs[0].font.size = Pt(16)
             titulo.runs[0].bold = True
-            titulo.runs[0].font.name = 'Aptos'
-            
+            titulo.runs[0].font.name = "Aptos"
             doc.add_paragraph()
             
-            doc.add_heading('Dados do Projeto', level=2)
+            doc.add_heading("Dados do Projeto (Interno)", level=2)
             dados_projeto = [
                 f"Modelo de Cálculo do tc: {modelo_tc}",
                 f"Comprimento máximo do percurso d'água (km): {L_km_val}",
@@ -336,11 +296,11 @@ def page_microdrenagem():
                 f"Área da Bacia (km²): {st.session_state.get('area_km2_micro', '')}"
             ]
             for item in dados_projeto:
-                doc.add_paragraph(item, style='List Bullet')
+                doc.add_paragraph(item, style="List Bullet")
             
             doc.add_paragraph()
             
-            doc.add_heading('Resultados', level=2)
+            doc.add_heading("Resultados", level=2)
             resultados_rel = [
                 f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
                 f"Intensidade Pluviométrica Máxima (i_max): {st.session_state.i_max:.2f} mm/h",
@@ -348,7 +308,7 @@ def page_microdrenagem():
                 f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): {st.session_state.P_n_percent:.2f}%"
             ]
             for item in resultados_rel:
-                doc.add_paragraph(item, style='List Bullet')
+                doc.add_paragraph(item, style="List Bullet")
             
             doc.save("relatorio_vazao_maxima.docx")
             with open("relatorio_vazao_maxima.docx", "rb") as f:
@@ -360,9 +320,12 @@ def page_microdrenagem():
             st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
             st.write(f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): **{st.session_state.P_n_percent:.2f}%**")
 
-# Chama a página correspondente
-if st.session_state.get("menu_principal") == "Dados do Projeto":
+# ------------------- Página Principal -------------------
+page_options = ["Dados do Projeto", "Cálculos"]
+page = st.sidebar.selectbox("Selecione a Página", page_options, key="page_select")
+
+if page == "Dados do Projeto":
     page_dados_projeto()
-elif st.session_state.get("menu_principal") == "Cálculos":
+elif page == "Cálculos":
     page_calculos()
 
