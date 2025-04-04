@@ -44,15 +44,10 @@ if "desnivel_m" not in st.session_state:
 # Título na barra lateral
 st.sidebar.title("Drenagem Urbana")
 
-# --- Menu Principal ---
-menu_options = ["Dados do Projeto", "Cálculos"]
-default_menu = st.session_state.get("menu_principal", "Dados do Projeto")
-menu_index = menu_options.index(default_menu) if default_menu in menu_options else 0
-
+# Menu principal utilizando selectbox (sem o parâmetro value)
 opcao_principal = st.sidebar.selectbox(
     "Selecione a Opção",
-    menu_options,
-    index=menu_index,
+    ["Dados do Projeto", "Cálculos"],
     key="menu_principal"
 )
 
@@ -65,14 +60,10 @@ if opcao_principal == "Dados do Projeto":
     
 # --- CÁLCULOS ---
 elif opcao_principal == "Cálculos":
-    submenu_options = ["Característica da Bacia", "Microdrenagem - Método Racional"]
-    default_submenu = st.session_state.get("submenu_calculos", "Característica da Bacia")
-    submenu_index = submenu_options.index(default_submenu) if default_submenu in submenu_options else 0
-
+    # Submenu para os cálculos, também sem o parâmetro value
     submenu_calculos = st.sidebar.radio(
         "Selecione o tipo de Cálculo", 
-        submenu_options,
-        index=submenu_index,
+        ["Característica da Bacia", "Microdrenagem - Método Racional"],
         key="submenu_calculos"
     )
     
@@ -215,13 +206,9 @@ elif opcao_principal == "Cálculos":
         st.title("Microdrenagem - Método Racional")
         
         modelo_options = ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"]
-        default_modelo = st.session_state.get("modelo_tc", "Kirpich")
-        modelo_index = modelo_options.index(default_modelo) if default_modelo in modelo_options else 0
-        
         modelo_tc = st.selectbox(
             "Selecione o modelo para o cálculo do tempo de concentração:",
             modelo_options,
-            index=modelo_index,
             key="modelo_tc"
         )
         
