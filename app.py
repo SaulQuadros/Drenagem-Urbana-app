@@ -339,6 +339,24 @@ elif opcao_principal == "Cálculos":
                 st.session_state.P_n_percent is None):
                 st.error("Realize o cálculo primeiro para gerar o relatório.")
             else:
+                # Criando variáveis auxiliares para os valores de L_km e H
+                L_km_val = (st.session_state.get('L_km') or 
+                            st.session_state.get('L_km_mod') or 
+                            st.session_state.get('L_km_vtc') or 
+                            st.session_state.get('L_km_gr') or 
+                            st.session_state.get('L_km_piking') or 
+                            st.session_state.get('L_km_usace') or 
+                            st.session_state.get('L_km_dnos') or 
+                            st.session_state.get('L_km_nrcs') or '')
+                H_val = (st.session_state.get('H') or 
+                         st.session_state.get('H_mod') or 
+                         st.session_state.get('H_vtc') or 
+                         st.session_state.get('H_gr') or 
+                         st.session_state.get('H_piking') or 
+                         st.session_state.get('H_usace') or 
+                         st.session_state.get('H_dnos') or 
+                         st.session_state.get('H_nrcs') or '')
+                
                 doc = Document()
                 sec = doc.sections[0]
                 sec.top_margin = Cm(2.0)
@@ -365,8 +383,8 @@ elif opcao_principal == "Cálculos":
                 doc.add_heading('Dados do Projeto', level=2)
                 dados_projeto = [
                     f"Modelo de Cálculo do tc: {modelo_tc}",
-                    f"Comprimento máximo do percurso d'água (km): {st.session_state.get('L_km', st.session_state.get('L_km_mod', st.session_state.get('L_km_vtc', st.session_state.get('L_km_gr', st.session_state.get('L_km_piking', st.session_state.get('L_km_usace', st.session_state.get('L_km_dnos', st.session_state.get('L_km_nrcs', '')))))))}",
-                    f"Desnível da bacia (m): {st.session_state.get('H', st.session_state.get('H_mod', st.session_state.get('H_vtc', st.session_state.get('H_gr', st.session_state.get('H_piking', st.session_state.get('H_usace', st.session_state.get('H_dnos', st.session_state.get('H_nrcs', '')))))))}",
+                    f"Comprimento máximo do percurso d'água (km): {L_km_val}",
+                    f"Desnível da bacia (m): {H_val}",
                     f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
                     f"Coeficiente a: {st.session_state.get('a', '')}",
                     f"Coeficiente b: {st.session_state.get('b', '')}",
