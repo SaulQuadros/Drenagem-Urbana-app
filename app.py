@@ -189,7 +189,7 @@ elif menu == "Microdrenagem - Método Racional":
     
     st.markdown("### Escolha do Modelo de Tempo de Concentração")
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
-                             ["Kirpich", "Kirpich Modificado", "Van Te Chow", "Giandotti", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
+                             ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
     
     # Inputs para os modelos – L em km e H em m; a conversão para m ocorre apenas no cálculo de S quando necessário.
     if modelo_tc == "Kirpich":
