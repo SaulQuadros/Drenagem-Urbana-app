@@ -22,11 +22,11 @@ if "P_n_percent" not in st.session_state:
 # Título no sidebar e menu
 st.sidebar.title("Drenagem Urbana")
 menu = st.sidebar.radio("Cálculos", 
-                          ["Características - Bacia Hidrográfica Contribuição", 
+                          ["Características da Bacia", 
                            "Microdrenagem - Método Racional"])
 
-if menu == "Características - Bacia Hidrográfica Contribuição":
-    st.title('Calculadora de Parâmetros de Bacia Hidrográfica')
+if menu == "Características da Bacia":
+    st.title('Parâmetros de Bacia Hidrográfica')
     
     st.sidebar.header('Insira os dados da bacia')
     # Inputs com padronização das unidades
@@ -79,7 +79,7 @@ if menu == "Características - Bacia Hidrográfica Contribuição":
         )
     ]
     
-    st.header('Resultados dos Parâmetros da Bacia')
+    st.header('Resultados')
     st.markdown(f'''
     - **Coeficiente de Forma (Kf)**: {kf:.3f}  
       **Interpretação**: quanto mais próximo de 1, mais arredondada é a bacia, indicando picos de vazões mais elevados e maior 
@@ -107,8 +107,8 @@ if menu == "Características - Bacia Hidrográfica Contribuição":
       e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento. 
     ''')
     
-    # Geração do documento Word para Drenagem Urbana
-    if st.button('📄 Gerar Relatório Word - Drenagem Urbana'):
+    # Geração do documento Word para Bacia Hidrográfica de Contribuição
+    if st.button('📄 Gerar Relatório Word - Parâmetros Bacia'):
         doc = Document()
     
         sec = doc.sections[0]
@@ -227,7 +227,7 @@ elif menu == "Microdrenagem - Método Racional":
             K = 5.0
         elif terreno == terreno_options[5]:
             K = 5.5
-        st.session_state.tc = (10 / K) * (((A ** 0.3) * (L_km ** 0.2)) / (S ** 0.4))
+        st.session_state.tc = (10 / K) * (((100 * A ** 0.3) * (L_km ** 0.2)) / (S ** 0.4))
     elif modelo_tc == "NRCS (SCS)":
         st.markdown("#### Parâmetros para a fórmula de NRCS (SCS)")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
