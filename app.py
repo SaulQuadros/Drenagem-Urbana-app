@@ -44,31 +44,36 @@ if "desnivel_m" not in st.session_state:
 # Título na barra lateral
 st.sidebar.title("Drenagem Urbana")
 
-# Menu principal – usamos o valor armazenado em st.session_state (ou o padrão "Dados do Projeto")
+# --- Menu Principal ---
+menu_options = ["Dados do Projeto", "Cálculos"]
+default_menu = st.session_state.get("menu_principal", "Dados do Projeto")
+menu_index = menu_options.index(default_menu) if default_menu in menu_options else 0
+
 opcao_principal = st.sidebar.selectbox(
     "Selecione a Opção",
-    ["Dados do Projeto", "Cálculos"],
-    key="menu_principal",
-    value=st.session_state.get("menu_principal", "Dados do Projeto")
+    menu_options,
+    index=menu_index,
+    key="menu_principal"
 )
 
 # --- DADOS DO PROJETO ---
 if opcao_principal == "Dados do Projeto":
     st.title("Dados do Projeto")
-    
-    # Os widgets utilizarão os valores armazenados automaticamente
     st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
     st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
     st.text_area("Resumo", max_chars=200, height=90, key="resumo")
     
 # --- CÁLCULOS ---
 elif opcao_principal == "Cálculos":
-    # Submenu para os cálculos – também preserva a escolha do usuário
+    submenu_options = ["Característica da Bacia", "Microdrenagem - Método Racional"]
+    default_submenu = st.session_state.get("submenu_calculos", "Característica da Bacia")
+    submenu_index = submenu_options.index(default_submenu) if default_submenu in submenu_options else 0
+
     submenu_calculos = st.sidebar.radio(
         "Selecione o tipo de Cálculo", 
-        ["Característica da Bacia", "Microdrenagem - Método Racional"],
-        key="submenu_calculos",
-        value=st.session_state.get("submenu_calculos", "Característica da Bacia")
+        submenu_options,
+        index=submenu_index,
+        key="submenu_calculos"
     )
     
     # --- Relatório de Parâmetros da Bacia ---
@@ -209,12 +214,15 @@ elif opcao_principal == "Cálculos":
     elif submenu_calculos == "Microdrenagem - Método Racional":
         st.title("Microdrenagem - Método Racional")
         
-        st.markdown("### Escolha do Modelo de Tempo de Concentração")
+        modelo_options = ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"]
+        default_modelo = st.session_state.get("modelo_tc", "Kirpich")
+        modelo_index = modelo_options.index(default_modelo) if default_modelo in modelo_options else 0
+        
         modelo_tc = st.selectbox(
             "Selecione o modelo para o cálculo do tempo de concentração:",
-            ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"],
-            key="modelo_tc",
-            value=st.session_state.get("modelo_tc", "Kirpich")
+            modelo_options,
+            index=modelo_index,
+            key="modelo_tc"
         )
         
         # Inputs para os modelos – L em km e H em m
@@ -291,23 +299,23 @@ elif opcao_principal == "Cálculos":
             if area_tipo == "Urbana":
                 uso = st.selectbox("Uso do Solo", ["100% pavimentadas", "Urbanas altamente impermeáveis", "Residenciais", "Com parques"], key="uso_urbano")
                 if uso == "100% pavimentadas":
-                    CN = 98 if cond_area=="Seco" else 99
+                    CN = 98 if cond_area == "Seco" else 99
                 elif uso == "Urbanas altamente impermeáveis":
-                    CN = 85 if cond_area=="Seco" else 95
+                    CN = 85 if cond_area == "Seco" else 95
                 elif uso == "Residenciais":
-                    CN = 70 if cond_area=="Seco" else 85
+                    CN = 70 if cond_area == "Seco" else 85
                 elif uso == "Com parques":
-                    CN = 60 if cond_area=="Seco" else 75
+                    CN = 60 if cond_area == "Seco" else 75
             else:
                 uso = st.selectbox("Uso do Solo", ["Pastagem", "Solo argiloso", "Florestas densas", "Solo compactado"], key="uso_rural")
                 if uso == "Pastagem":
-                    CN = 39 if cond_area=="Seco" else 61
+                    CN = 39 if cond_area == "Seco" else 61
                 elif uso == "Solo argiloso":
-                    CN = 66 if cond_area=="Seco" else 85
+                    CN = 66 if cond_area == "Seco" else 85
                 elif uso == "Florestas densas":
-                    CN = 30 if cond_area=="Seco" else 55
+                    CN = 30 if cond_area == "Seco" else 55
                 elif uso == "Solo compactado":
-                    CN = 75 if cond_area=="Seco" else 85
+                    CN = 75 if cond_area == "Seco" else 85
             st.session_state.tc = 3.42 * ((1000 / CN - 9) ** 0.7) * (L_km ** 0.8) * (S ** (-0.5))
         else:
             st.info("Selecione um modelo válido.")
