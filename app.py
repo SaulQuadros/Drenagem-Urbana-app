@@ -128,11 +128,20 @@ if menu == "Características da Bacia":
         titulo.runs[0].bold = True
         titulo.runs[0].font.name = 'Aptos'
     
-        # Inserindo os dados do projeto como as primeiras informações da página
-        doc.add_heading('Dados do Projeto', level=2)
-        doc.add_paragraph(f"Nome do Projeto: {nome_projeto}")
-        doc.add_paragraph(f"Técnico Responsável: {tecnico_responsavel}")
-        doc.add_paragraph()  # Espaço entre seções
+        # Inserindo os dados do projeto como as primeiras informações da página, sem subtítulo
+        p_nome = doc.add_paragraph()
+        run_nome = p_nome.add_run(f"Nome do Projeto: {nome_projeto}")
+        run_nome.bold = True
+        run_nome.font.size = Pt(11)
+        run_nome.font.name = 'Aptos'
+        p_nome.paragraph_format.space_after = Pt(6)
+        
+        p_tecnico = doc.add_paragraph()
+        run_tecnico = p_tecnico.add_run(f"Técnico Responsável: {tecnico_responsavel}")
+        run_tecnico.bold = True
+        run_tecnico.font.size = Pt(11)
+        run_tecnico.font.name = 'Aptos'
+        p_tecnico.paragraph_format.space_after = Pt(12)
     
         for nome, valor, interpretacao in resultados:
             p_param = doc.add_paragraph()
@@ -275,7 +284,7 @@ elif menu == "Microdrenagem - Método Racional":
     n = st.number_input("Expoente n", value=1.0, step=0.01)
     
     # Novos inputs para a equação de i_max e probabilidade
-    T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
+    T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=10, step=1)
     n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1)
     
     st.markdown("### Coeficiente de Escoamento Superficial (C)")
