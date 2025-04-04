@@ -128,11 +128,29 @@ if menu == "Características da Bacia":
         titulo.runs[0].bold = True
         titulo.runs[0].font.name = 'Aptos'
     
-        # Inserindo os dados do projeto como as primeiras informações da página
+        # Inserindo os dados do projeto como as primeiras informações da página, itemizados com bullet
         doc.add_heading('Dados do Projeto', level=2)
-        doc.add_paragraph(f"Nome do Projeto: {nome_projeto}")
-        doc.add_paragraph(f"Técnico Responsável: {tecnico_responsavel}")
-        doc.add_paragraph()  # Espaço entre seções
+        p_nome = doc.add_paragraph(style="List Bullet")
+        run_label_nome = p_nome.add_run("Nome do Projeto: ")
+        run_label_nome.bold = True
+        run_label_nome.font.size = Pt(11)
+        run_label_nome.font.name = 'Aptos'
+        run_value_nome = p_nome.add_run(nome_projeto)
+        run_value_nome.bold = True
+        run_value_nome.font.size = Pt(11)
+        run_value_nome.font.name = 'Aptos'
+        p_nome.paragraph_format.space_after = Pt(6)
+        
+        p_tecnico = doc.add_paragraph(style="List Bullet")
+        run_label_tecnico = p_tecnico.add_run("Responsável Técnico: ")
+        run_label_tecnico.bold = True
+        run_label_tecnico.font.size = Pt(11)
+        run_label_tecnico.font.name = 'Aptos'
+        run_value_tecnico = p_tecnico.add_run(tecnico_responsavel)
+        run_value_tecnico.bold = True
+        run_value_tecnico.font.size = Pt(11)
+        run_value_tecnico.font.name = 'Aptos'
+        p_tecnico.paragraph_format.space_after = Pt(12)
     
         for nome, valor, interpretacao in resultados:
             p_param = doc.add_paragraph()
@@ -337,11 +355,30 @@ elif menu == "Microdrenagem - Método Racional":
             titulo.runs[0].bold = True
             titulo.runs[0].font.name = 'Aptos'
     
-            # Inserindo os dados do projeto como as primeiras informações da página
+            # Inserindo os dados do projeto como as primeiras informações da página,
+            # itemizados com bullet (círculo preto) e com ambos os textos em negrito.
             doc.add_heading('Dados do Projeto', level=2)
-            doc.add_paragraph(f"Nome do Projeto: {nome_projeto}")
-            doc.add_paragraph(f"Técnico Responsável: {tecnico_responsavel}")
-            doc.add_paragraph()  # Espaço entre seções
+            p_dp1 = doc.add_paragraph(style="List Bullet")
+            run_dp1_label = p_dp1.add_run("Nome do Projeto: ")
+            run_dp1_label.bold = True
+            run_dp1_label.font.size = Pt(11)
+            run_dp1_label.font.name = 'Aptos'
+            run_dp1_value = p_dp1.add_run(nome_projeto)
+            run_dp1_value.bold = True
+            run_dp1_value.font.size = Pt(11)
+            run_dp1_value.font.name = 'Aptos'
+            p_dp1.paragraph_format.space_after = Pt(6)
+            
+            p_dp2 = doc.add_paragraph(style="List Bullet")
+            run_dp2_label = p_dp2.add_run("Responsável Técnico: ")
+            run_dp2_label.bold = True
+            run_dp2_label.font.size = Pt(11)
+            run_dp2_label.font.name = 'Aptos'
+            run_dp2_value = p_dp2.add_run(tecnico_responsavel)
+            run_dp2_value.bold = True
+            run_dp2_value.font.size = Pt(11)
+            run_dp2_value.font.name = 'Aptos'
+            p_dp2.paragraph_format.space_after = Pt(12)
     
             # Seção: Dados do Projeto (demais informações)
             doc.add_heading('Detalhes do Projeto', level=2)
