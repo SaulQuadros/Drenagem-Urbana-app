@@ -26,7 +26,7 @@ menu = st.sidebar.radio("Cálculos",
                            "Microdrenagem - Método Racional"])
 
 if menu == "Características da Bacia":
-    st.title('Parâmetros de Bacia Hidrográfica')
+    st.title('Bacia Hidrográfica de Contribuição')
     
     st.sidebar.header('Insira os dados da bacia')
     # Inputs com padronização das unidades
@@ -79,7 +79,7 @@ if menu == "Características da Bacia":
         )
     ]
     
-    st.header('Resultados')
+    st.header('Resultados: Parâmetros da Bacia')
     st.markdown(f'''
     - **Coeficiente de Forma (Kf)**: {kf:.3f}  
       **Interpretação**: quanto mais próximo de 1, mais arredondada é a bacia, indicando picos de vazões mais elevados e maior 
@@ -123,7 +123,11 @@ if menu == "Características da Bacia":
         titulo.runs[0].bold = True
         titulo.runs[0].font.name = 'Aptos'
     
-        doc.add_paragraph()
+        # Inserindo os dados do projeto como as primeiras informações da página
+        doc.add_heading('Dados do Projeto', level=2)
+        doc.add_paragraph(f"Nome do Projeto: {nome_projeto}")
+        doc.add_paragraph(f"Técnico Responsável: {tecnico_responsavel}")
+        doc.add_paragraph()  # Espaço entre seções
     
         for nome, valor, interpretacao in resultados:
             p_param = doc.add_paragraph()
@@ -152,6 +156,11 @@ if menu == "Características da Bacia":
     
         with open("relatorio_bacia.docx", "rb") as f:
             st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_bacia.docx")
+    
+    # Inserindo os campos "Dados do Projeto" ao final do submenu "Características da Bacia"
+    st.markdown("### Dados do Projeto")
+    nome_projeto = st.text_input("Nome do Projeto")
+    tecnico_responsavel = st.text_input("Técnico Responsável")
 
 elif menu == "Microdrenagem - Método Racional":
     st.title("Microdrenagem - Método Racional")
@@ -277,6 +286,11 @@ elif menu == "Microdrenagem - Método Racional":
     area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001, key="area_km2_micro")
     area_m2 = area_km2_md * 1e6
     
+    # Inserindo os campos "Dados do Projeto" após os dados da bacia
+    st.markdown("### Dados do Projeto")
+    nome_projeto = st.text_input("Nome do Projeto", key="nome_projeto")
+    tecnico_responsavel = st.text_input("Técnico Responsável", key="tecnico_responsavel")
+    
     # Botão de cálculo
     if st.button("Calcular"):
         if st.session_state.tc is None:
@@ -323,10 +337,14 @@ elif menu == "Microdrenagem - Método Racional":
             titulo.runs[0].bold = True
             titulo.runs[0].font.name = 'Aptos'
     
-            doc.add_paragraph()
-    
-            # Seção: Dados do Projeto
+            # Inserindo os dados do projeto como as primeiras informações da página
             doc.add_heading('Dados do Projeto', level=2)
+            doc.add_paragraph(f"Nome do Projeto: {nome_projeto}")
+            doc.add_paragraph(f"Técnico Responsável: {tecnico_responsavel}")
+            doc.add_paragraph()  # Espaço entre seções
+    
+            # Seção: Dados do Projeto (demais informações)
+            doc.add_heading('Detalhes do Projeto', level=2)
             dados_projeto = [
                 f"Modelo de Cálculo do tc: {modelo_tc}",
                 f"Comprimento máximo do percurso d'água (km): {L_km}",
