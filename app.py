@@ -100,7 +100,7 @@ if menu == "Características da Bacia":
       o inverso.
     
     - **Índice de Sinuosidade (Sc)**: {sc:.3f}  
-      **Interpretação**: valores próximos de 1 indicam canais mais retos e maior eficiência de drenagem, portanto, quanto maior o valor 
+      **Interpretação**: valores próximos de 1 indicam canais mais retos e maior eficiência de drenagem, portanto, quanto maior o valor, 
       maior a sinuosidade e com isso, maior risco de enchentes.
     
     - **Declividade do Curso d'água Principal (Dc)**: {dc:.3f}%  
@@ -154,7 +154,7 @@ if menu == "Características da Bacia":
         p_tecnico.paragraph_format.space_after = Pt(12)
         
         # Adicionando um subtítulo "Resultados e Interpretações" antes dos coeficientes
-        doc.add_heading('Resultados e Interpretações', level=2)
+        doc.add_heading('Índices Morfométricos: Resultados e Interpretações', level=2)
     
         for nome, valor, interpretacao in resultados:
             p_param = doc.add_paragraph(style="List Bullet")
@@ -206,16 +206,15 @@ elif menu == "Microdrenagem - Método Racional":
         st.markdown("#### Parâmetros para a fórmula de Van Te Chow")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # S = H / L (L permanece em km)
         S = H / (L_km * 1000)
-        st.session_state.tc = 5,773* ((L_km / (S ** 0.5)) ** 0.64)
-    elif modelo_tc == "Giandotti":
-        st.markdown("#### Parâmetros para a fórmula de Giandotti")
+        st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
+    elif modelo_tc == "George Ribeiro":
+        st.markdown("#### Parâmetros para a fórmula de George Ribeiro")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Aqui, A será utilizada a partir da seção "Dados da Bacia para o Método Racional"
-        A = st.session_state.get("area_km2_micro", 1.0)
-        st.session_state.tc = 60 * ((4 * (A ** 0.5) + 1.5 * L_km) / (0.8 * (H ** 0.5)))
+        S = H / (L_km * 1000)
+        pr = st.number_input("Parâmetro (pr) - Porção da bacia coberta por vegetação", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
+        st.session_state.tc = (16 * L_km) / ((1.05 - 0.2 * pr) * ((100 * S) ** 0.04))
     elif modelo_tc == "Piking":
         st.markdown("#### Parâmetros para a fórmula de Piking")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
@@ -233,10 +232,7 @@ elif menu == "Microdrenagem - Método Racional":
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
         H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
         S = H / (L_km * 1000)
-        # Utiliza a área da bacia informada em "Dados da Bacia para o Método Racional"
         A = st.session_state.get("area_km2_micro", 1.0)
-        st.session_state.tc = (10 / K)  # Será definido abaixo
-        # Para DNOS, o usuário deve escolher o tipo de terreno para definir K
         terreno_options = [
             "arenoso-argiloso, coberto de vegetação intensa, elevada absorção",
             "comum, coberto de vegetação, absorção apreciável",
@@ -298,11 +294,11 @@ elif menu == "Microdrenagem - Método Racional":
     n = st.number_input("Expoente n", value=1.0, step=0.01)
     
     # Novos inputs para a equação de i_max e probabilidade
-    T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
+    T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=10, step=1)
     n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1)
     
     st.markdown("### Coeficiente de Escoamento Superficial (C)")
-    C = st.number_input("Insira o valor de C", value=0.7, step=0.01)
+    C = st.number_input("Insira o valor de C", value=0.6, step=0.01)
     
     st.markdown("### Dados da Bacia para o Método Racional")
     area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001, key="area_km2_micro")
