@@ -44,11 +44,10 @@ if "desnivel_m" not in st.session_state:
 # Título na barra lateral
 st.sidebar.title("Drenagem Urbana")
 
-# Menu principal utilizando selectbox (lista)
+# Menu principal utilizando selectbox (sem definir index fixo)
 opcao_principal = st.sidebar.selectbox(
     "Selecione a Opção",
     ["Dados do Projeto", "Cálculos"],
-    index=0,
     key="menu_principal"
 )
 
@@ -56,10 +55,10 @@ opcao_principal = st.sidebar.selectbox(
 if opcao_principal == "Dados do Projeto":
     st.title("Dados do Projeto")
     
-    # Os widgets usam o valor atual do st.session_state (que já foi inicializado)
-    nome_projeto = st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
-    tecnico = st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
-    resumo = st.text_area("Resumo", max_chars=200, height=90, key="resumo")
+    # Os widgets usam os valores armazenados em st.session_state
+    st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
+    st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
+    st.text_area("Resumo", max_chars=200, height=90, key="resumo")
     
 # --- CÁLCULOS ---
 elif opcao_principal == "Cálculos":
