@@ -151,9 +151,12 @@ if menu == "Características da Bacia":
         run_value_tecnico.font.size = Pt(11)
         run_value_tecnico.font.name = 'Aptos'
         p_tecnico.paragraph_format.space_after = Pt(12)
+        
+        # Adicionando um subtítulo "Resultados e Interpretações" antes dos coeficientes
+        doc.add_heading('Resultados e Interpretações', level=2)
     
         for nome, valor, interpretacao in resultados:
-            p_param = doc.add_paragraph()
+            p_param = doc.add_paragraph(style="List Bullet")
             run_param = p_param.add_run(f"{nome}: ")
             run_param.bold = True
             run_param.font.size = Pt(11)
@@ -164,7 +167,7 @@ if menu == "Características da Bacia":
             p_param.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
             p_param.paragraph_format.space_after = Pt(6)
             
-            p_interp = doc.add_paragraph()
+            p_interp = doc.add_paragraph(style="List Bullet")
             run_interp_label = p_interp.add_run("Interpretação: ")
             run_interp_label.bold = True
             run_interp_label.font.size = Pt(11)
