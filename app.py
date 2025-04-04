@@ -43,12 +43,7 @@ if "desnivel_m" not in st.session_state:
 
 def page_caracteristica_bacia():
     st.title("Característica da Bacia")
-    # Exibe os campos de Dados do Projeto no início
-    st.header("Dados do Projeto")
-    st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
-    st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
     
-    st.header("Parâmetros de Bacia Hidrográfica")
     st.sidebar.header("Insira os dados da bacia")
     area_km2 = st.sidebar.number_input("Área da Bacia (km²)", min_value=10.0, format="%.2f", key="area_km2_bacia")
     perimetro_km = st.sidebar.number_input("Perímetro da Bacia (km)", min_value=20.0, format="%.2f", key="perimetro_km")
@@ -64,16 +59,33 @@ def page_caracteristica_bacia():
     lm = area_km2 / (4 * comprimento_total_cursos_agua_km)
     sc = comprimento_curso_principal_km / comprimento_retalinea_km
     dc = (desnivel_m / (comprimento_curso_principal_km * 1000)) * 100
-    
+
+    # Exibe os resultados com interpretações
     st.header("Resultados dos Parâmetros da Bacia")
     st.markdown(f"""
-    - **Coeficiente de Forma (Kf):** {kf:.3f}
-    - **Coeficiente de Compacidade (Kc):** {kc:.3f}
-    - **Densidade de Drenagem (Dd):** {dd:.3f} km/km²
-    - **Extensão Média do Escoamento (lm):** {lm:.3f} km
-    - **Índice de Sinuosidade (Sc):** {sc:.3f}
-    - **Declividade do Curso d'água Principal (Dc):** {dc:.3f}%
+    - **Coeficiente de Forma (Kf):** {kf:.3f}  
+      *Interpretação:* Quanto mais próximo de 1, mais arredondada é a bacia, indicando picos de vazões mais elevados e maior tendência para enchentes rápidas.
+      
+    - **Coeficiente de Compacidade (Kc):** {kc:.3f}  
+      *Interpretação:* Quanto mais próximo de 1, mais circular é a bacia, favorecendo escoamentos intensos e aumento do risco de inundações rápidas.
+      
+    - **Densidade de Drenagem (Dd):** {dd:.3f} km/km²  
+      *Interpretação:* Valores maiores que 1 indicam maior rapidez no escoamento superficial e menor infiltração.
+      
+    - **Extensão Média do Escoamento (lm):** {lm:.3f} km  
+      *Interpretação:* Valores entre 100m e 250m sugerem drenagem moderada; abaixo de 100m, escoamento rápido; acima de 250m, escoamento mais lento.
+      
+    - **Índice de Sinuosidade (Sc):** {sc:.3f}  
+      *Interpretação:* Valores próximos de 1 indicam canais retos; valores maiores indicam maior sinuosidade e potencial aumento do risco de enchentes.
+      
+    - **Declividade do Curso d'água Principal (Dc):** {dc:.3f}%  
+      *Interpretação:* Valores abaixo de 1% sugerem drenagem lenta; acima de 5%, escoamento rápido.
     """)
+
+    # Após os resultados, exibe os dados do projeto
+    st.header("Dados do Projeto")
+    st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
+    st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
     
     if st.button("📄 Gerar Relatório Word - Parâmetros da Bacia", key="bt_rel_bacia"):
         doc = Document()
@@ -83,7 +95,7 @@ def page_caracteristica_bacia():
         sec.left_margin = Cm(2.5)
         sec.right_margin = Cm(2.5)
         
-        # Dados do Projeto incluídos no relatório
+        # Dados do Projeto (sempre no início do relatório)
         doc.add_heading("Dados do Projeto", level=1)
         doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
         doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
@@ -102,15 +114,15 @@ def page_caracteristica_bacia():
 
 def page_microdrenagem():
     st.title("Microdrenagem - Método Racional")
-    # Exibe os dados do projeto
-    st.header("Dados do Projeto")
-    st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
-    st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
     
-    st.header("Microdrenagem - Método Racional")
+    st.sidebar.header("Dados da Bacia para o Método Racional")
+    area_km2_md = st.sidebar.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001, key="area_km2_micro")
+    area_m2 = area_km2_md * 1e6
+    
     modelo_options = ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"]
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:", modelo_options, key="modelo_tc")
     
+    # Exibe os inputs de acordo com o modelo escolhido
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km")
@@ -268,6 +280,7 @@ def page_microdrenagem():
             sec.left_margin = Cm(2.5)
             sec.right_margin = Cm(2.5)
             
+            # Dados do Projeto sempre no início do relatório Word
             doc.add_heading("Dados do Projeto", level=1)
             doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
             doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
@@ -321,12 +334,12 @@ def page_microdrenagem():
             st.write(f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): **{st.session_state.P_n_percent:.2f}%**")
 
 # ---------------- Navegação Principal ----------------
-# Como agora só há "Cálculos", utilizamos diretamente essa página
+
+# Como a única opção de página agora é "Cálculos", usamos diretamente essa página
 page_options = ["Cálculos"]
 page = st.sidebar.selectbox("Selecione a Página", page_options, key="page_select")
 
 if page == "Cálculos":
-    # Define o submenu para os cálculos
     submenu_options = ["Característica da Bacia", "Microdrenagem - Método Racional"]
     submenu = st.sidebar.radio("Selecione o tipo de Cálculo", submenu_options, key="submenu_calculos")
     if submenu == "Característica da Bacia":
