@@ -22,40 +22,43 @@ if "P_n_percent" not in st.session_state:
 # Título na barra lateral
 st.sidebar.title("Drenagem Urbana")
 
-# Opções de menu em nível superior utilizando uma lista (selectbox)
+# Menu principal utilizando selectbox (lista)
 opcao_principal = st.sidebar.selectbox(
     "Selecione a Opção",
     ["Dados do Projeto", "Cálculos"],
-    index=0
+    index=0,
+    key="menu_principal"
 )
 
 # --- DADOS DO PROJETO ---
 if opcao_principal == "Dados do Projeto":
     st.title("Dados do Projeto")
     
-    # Campos de entrada relacionados ao Projeto
-    nome_projeto = st.text_input("Nome do Projeto", max_chars=100)
-    tecnico = st.text_input("Técnico Responsável", max_chars=100)
-    resumo = st.text_area("Resumo", max_chars=200, height=90)
-
+    # Campos de entrada com persistência (utilizando key)
+    nome_projeto = st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
+    tecnico = st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
+    resumo = st.text_area("Resumo", max_chars=200, height=90, key="resumo")
+    
 # --- CÁLCULOS ---
 elif opcao_principal == "Cálculos":
     # Submenu com os tipos de cálculos disponíveis
-    menu = st.sidebar.radio("Selecione o tipo de Cálculo", 
-                            ["Características - Bacia Hidrográfica Contribuição", 
-                             "Microdrenagem - Método Racional"])
+    menu = st.sidebar.radio(
+        "Selecione o tipo de Cálculo", 
+        ["Característica da Bacia", "Microdrenagem - Método Racional"],
+        key="submenu_calculos"
+    )
     
-    if menu == "Características - Bacia Hidrográfica Contribuição":
-        st.title('Calculadora de Parâmetros de Bacia Hidrográfica')
+    # --- Relatório de Parâmetros da Bacia ---
+    if menu == "Característica da Bacia":
+        st.title('Parâmetros de Bacia Hidrográfica')
         
         st.sidebar.header('Insira os dados da bacia')
-        # Inputs com padronização das unidades
-        area_km2 = st.sidebar.number_input('Área da Bacia (km²)', min_value=10.0, format="%.2f")
-        perimetro_km = st.sidebar.number_input('Perímetro da Bacia (km)', min_value=20.0, format="%.2f")
-        comprimento_curso_principal_km = st.sidebar.number_input('Comprimento do Curso Principal (km)', min_value=2.0, format="%.2f")
-        comprimento_retalinea_km = st.sidebar.number_input('Comprimento em Linha Reta (km)', min_value=1.5, format="%.2f")
-        comprimento_total_cursos_agua_km = st.sidebar.number_input("Comprimento Total dos Cursos d'Água (km)", min_value=4.0, format="%.2f")
-        desnivel_m = st.sidebar.number_input('Desnível da Bacia (m)', min_value=10.0, format="%.2f")
+        area_km2 = st.sidebar.number_input('Área da Bacia (km²)', min_value=10.0, format="%.2f", key="area_km2_bacia")
+        perimetro_km = st.sidebar.number_input('Perímetro da Bacia (km)', min_value=20.0, format="%.2f", key="perimetro_km")
+        comprimento_curso_principal_km = st.sidebar.number_input('Comprimento do Curso Principal (km)', min_value=2.0, format="%.2f", key="comprimento_curso_principal_km")
+        comprimento_retalinea_km = st.sidebar.number_input('Comprimento em Linha Reta (km)', min_value=1.5, format="%.2f", key="comprimento_retalinea_km")
+        comprimento_total_cursos_agua_km = st.sidebar.number_input("Comprimento Total dos Cursos d'Água (km)", min_value=4.0, format="%.2f", key="comprimento_total_cursos_agua_km")
+        desnivel_m = st.sidebar.number_input('Desnível da Bacia (m)', min_value=10.0, format="%.2f", key="desnivel_m")
         
         # Cálculos dos parâmetros
         kf = area_km2 / (comprimento_curso_principal_km ** 2)
@@ -126,8 +129,8 @@ elif opcao_principal == "Cálculos":
           e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento. 
         ''')
         
-        # Geração do documento Word para Drenagem Urbana
-        if st.button('📄 Gerar Relatório Word - Drenagem Urbana'):
+        # Geração do documento Word para Parâmetros da Bacia com os Dados do Projeto no início
+        if st.button('📄 Gerar Relatório Word - Parâmetros da Bacia', key="bt_rel_bacia"):
             doc = Document()
         
             sec = doc.sections[0]
@@ -135,6 +138,13 @@ elif opcao_principal == "Cálculos":
             sec.bottom_margin = Cm(2.0)
             sec.left_margin = Cm(2.5)
             sec.right_margin = Cm(2.5)
+        
+            # Inserindo os Dados do Projeto
+            doc.add_heading('Dados do Projeto', level=1)
+            doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
+            doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
+            doc.add_paragraph(f"Resumo: {st.session_state.get('resumo', 'Não informado')}")
+            doc.add_paragraph()
         
             titulo = doc.add_heading('Relatório de Parâmetros da Bacia Hidrográfica', 0)
             titulo.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
@@ -172,53 +182,57 @@ elif opcao_principal == "Cálculos":
             with open("relatorio_bacia.docx", "rb") as f:
                 st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_bacia.docx")
     
+    # --- Relatório de Microdrenagem - Método Racional ---
     elif menu == "Microdrenagem - Método Racional":
         st.title("Microdrenagem - Método Racional")
         
         st.markdown("### Escolha do Modelo de Tempo de Concentração")
-        modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:",
-                                 ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"])
+        modelo_tc = st.selectbox(
+            "Selecione o modelo para o cálculo do tempo de concentração:",
+            ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"],
+            key="modelo_tc"
+        )
         
-        # Inputs para os modelos – L em km e H em m; a conversão para m ocorre apenas no cálculo de S quando necessário.
+        # Inputs para os modelos – L em km e H em m
         if modelo_tc == "Kirpich":
             st.markdown("#### Parâmetros para a fórmula de Kirpich")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H")
             st.session_state.tc = 57 * (((L_km ** 3) / H) ** 0.385)
         elif modelo_tc == "Kirpich Modificado":
             st.markdown("#### Parâmetros para a fórmula de Kirpich Modificado")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km_mod")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H_mod")
             st.session_state.tc = 85.2 * (((L_km ** 3) / H) ** 0.385)
         elif modelo_tc == "Van Te Chow":
             st.markdown("#### Parâmetros para a fórmula de Van Te Chow")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km_vtc")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H_vtc")
             S = H / (L_km * 1000)
             st.session_state.tc = 5.773 * ((L_km / (S ** 0.5)) ** 0.64)
         elif modelo_tc == "George Ribeiro":
             st.markdown("#### Parâmetros para a fórmula de George Ribeiro")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km_gr")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H_gr")
             S = H / (L_km * 1000)
-            pr = st.number_input("Parâmetro (pr) - Porção da bacia coberta por vegetação", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
+            pr = st.number_input("Parâmetro (pr) - Porção da bacia coberta por vegetação", min_value=0.0, max_value=1.0, value=0.5, step=0.01, key="pr")
             st.session_state.tc = (16 * L_km) / ((1.05 - 0.2 * pr) * ((100 * S) ** 0.04))
         elif modelo_tc == "Piking":
             st.markdown("#### Parâmetros para a fórmula de Piking")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km_piking")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H_piking")
             S = H / (L_km * 1000)
             st.session_state.tc = 5.3 * (((L_km ** 2) / S) ** (1/3))
         elif modelo_tc == "USACE":
             st.markdown("#### Parâmetros para a fórmula de USACE")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km_usace")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H_usace")
             S = H / (L_km * 1000)
             st.session_state.tc = 7.504 * (L_km ** 0.76) * (S ** (-0.19))
         elif modelo_tc == "DNOS":
             st.markdown("#### Parâmetros para a fórmula de DNOS")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km_dnos")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H_dnos")
             S = H / (L_km * 1000)
             A = st.session_state.get("area_km2_micro", 1.0)
             terreno_options = [
@@ -229,7 +243,7 @@ elif opcao_principal == "Cálculos":
                 "com rocha, escassa vegetação, baixa absorção",
                 "Rochoso, vegetação rala, reduzida absorção"
             ]
-            terreno = st.selectbox("Selecione o tipo de terreno", terreno_options)
+            terreno = st.selectbox("Selecione o tipo de terreno", terreno_options, key="terreno")
             if terreno == terreno_options[0]:
                 K = 2.0
             elif terreno == terreno_options[1]:
@@ -245,13 +259,13 @@ elif opcao_principal == "Cálculos":
             st.session_state.tc = (10 / K) * (((100 * A ** 0.3) * (L_km ** 0.2)) / (S ** 0.4))
         elif modelo_tc == "NRCS (SCS)":
             st.markdown("#### Parâmetros para a fórmula de NRCS (SCS)")
-            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km_nrcs")
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0, key="H_nrcs")
             S = H / (L_km * 1000)
-            area_tipo = st.selectbox("Tipo de Área", ["Urbana", "Rural"])
-            cond_area = st.selectbox("Condição da Área", ["Seco", "Úmido"])
+            area_tipo = st.selectbox("Tipo de Área", ["Urbana", "Rural"], key="area_tipo")
+            cond_area = st.selectbox("Condição da Área", ["Seco", "Úmido"], key="cond_area")
             if area_tipo == "Urbana":
-                uso = st.selectbox("Uso do Solo", ["100% pavimentadas", "Urbanas altamente impermeáveis", "Residenciais", "Com parques"])
+                uso = st.selectbox("Uso do Solo", ["100% pavimentadas", "Urbanas altamente impermeáveis", "Residenciais", "Com parques"], key="uso_urbano")
                 if uso == "100% pavimentadas":
                     CN = 98 if cond_area=="Seco" else 99
                 elif uso == "Urbanas altamente impermeáveis":
@@ -261,7 +275,7 @@ elif opcao_principal == "Cálculos":
                 elif uso == "Com parques":
                     CN = 60 if cond_area=="Seco" else 75
             else:
-                uso = st.selectbox("Uso do Solo", ["Pastagem", "Solo argiloso", "Florestas densas", "Solo compactado"])
+                uso = st.selectbox("Uso do Solo", ["Pastagem", "Solo argiloso", "Florestas densas", "Solo compactado"], key="uso_rural")
                 if uso == "Pastagem":
                     CN = 39 if cond_area=="Seco" else 61
                 elif uso == "Solo argiloso":
@@ -276,24 +290,24 @@ elif opcao_principal == "Cálculos":
             st.session_state.tc = None
         
         st.markdown("### Dados para o Cálculo da Intensidade Pluviométrica Máxima")
-        a = st.number_input("Coeficiente a", value=1000.0, step=10.0)
-        b = st.number_input("Coeficiente b", value=10.0, step=0.01)
-        m = st.number_input("Expoente m", value=1.0, step=0.01)
-        n = st.number_input("Expoente n", value=1.0, step=0.01)
+        a = st.number_input("Coeficiente a", value=1000.0, step=10.0, key="a")
+        b = st.number_input("Coeficiente b", value=10.0, step=0.01, key="b")
+        m = st.number_input("Expoente m", value=1.0, step=0.01, key="m")
+        n = st.number_input("Expoente n", value=1.0, step=0.01, key="n")
         
         # Novos inputs para a equação de i_max e probabilidade
-        T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1)
-        n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1)
+        T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1, key="T")
+        n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1, key="n_period")
         
         st.markdown("### Coeficiente de Escoamento Superficial (C)")
-        C = st.number_input("Insira o valor de C", value=0.7, step=0.01)
+        C = st.number_input("Insira o valor de C", value=0.7, step=0.01, key="C")
         
         st.markdown("### Dados da Bacia para o Método Racional")
         area_km2_md = st.number_input("Área da Bacia (km²)", min_value=0.001, value=1.0, step=0.001, key="area_km2_micro")
         area_m2 = area_km2_md * 1e6
         
         # Botão de cálculo
-        if st.button("Calcular"):
+        if st.button("Calcular", key="calcular"):
             if st.session_state.tc is None:
                 st.error("Selecione um modelo de tempo de concentração implementado.")
             else:
@@ -318,7 +332,7 @@ elif opcao_principal == "Cálculos":
                     st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
                     st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
         
-        if st.button("📄 Gerar Relatório Word - Microdrenagem"):
+        if st.button("📄 Gerar Relatório Word - Microdrenagem", key="bt_rel_micro"):
             if (st.session_state.tc is None or
                 st.session_state.i_max is None or
                 st.session_state.Q is None or
@@ -332,6 +346,13 @@ elif opcao_principal == "Cálculos":
                 sec.left_margin = Cm(2.5)
                 sec.right_margin = Cm(2.5)
         
+                # Inserindo os Dados do Projeto no início do documento
+                doc.add_heading('Dados do Projeto', level=1)
+                doc.add_paragraph(f"Nome do Projeto: {st.session_state.get('nome_projeto', 'Não informado')}")
+                doc.add_paragraph(f"Técnico Responsável: {st.session_state.get('tecnico', 'Não informado')}")
+                doc.add_paragraph(f"Resumo: {st.session_state.get('resumo', 'Não informado')}")
+                doc.add_paragraph()
+        
                 titulo = doc.add_heading('Microdrenagem - Método Racional', 0)
                 titulo.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
                 titulo.runs[0].font.size = Pt(16)
@@ -340,21 +361,21 @@ elif opcao_principal == "Cálculos":
         
                 doc.add_paragraph()
         
-                # Seção: Dados do Projeto
+                # Seção: Dados do Projeto (relatório interno)
                 doc.add_heading('Dados do Projeto', level=2)
                 dados_projeto = [
                     f"Modelo de Cálculo do tc: {modelo_tc}",
-                    f"Comprimento máximo do percurso d'água (km): {L_km}",
-                    f"Desnível da bacia (m): {H}",
+                    f"Comprimento máximo do percurso d'água (km): {st.session_state.get('L_km', st.session_state.get('L_km_mod', st.session_state.get('L_km_vtc', st.session_state.get('L_km_gr', st.session_state.get('L_km_piking', st.session_state.get('L_km_usace', st.session_state.get('L_km_dnos', st.session_state.get('L_km_nrcs', '')))))))}",
+                    f"Desnível da bacia (m): {st.session_state.get('H', st.session_state.get('H_mod', st.session_state.get('H_vtc', st.session_state.get('H_gr', st.session_state.get('H_piking', st.session_state.get('H_usace', st.session_state.get('H_dnos', st.session_state.get('H_nrcs', '')))))))}",
                     f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
-                    f"Coeficiente a: {a}",
-                    f"Coeficiente b: {b}",
-                    f"Expoente m: {m}",
-                    f"Expoente n: {n}",
-                    f"Tempo de Retorno (T): {T} ano(s)",
-                    f"Período de análise (n anos): {n_period}",
-                    f"Coeficiente de Escoamento (C): {C}",
-                    f"Área da Bacia (km²): {area_km2_md}"
+                    f"Coeficiente a: {st.session_state.get('a', '')}",
+                    f"Coeficiente b: {st.session_state.get('b', '')}",
+                    f"Expoente m: {st.session_state.get('m', '')}",
+                    f"Expoente n: {st.session_state.get('n', '')}",
+                    f"Tempo de Retorno (T): {st.session_state.get('T', '')} ano(s)",
+                    f"Período de análise (n anos): {st.session_state.get('n_period', '')}",
+                    f"Coeficiente de Escoamento (C): {st.session_state.get('C', '')}",
+                    f"Área da Bacia (km²): {st.session_state.get('area_km2_micro', '')}"
                 ]
                 for item in dados_projeto:
                     doc.add_paragraph(item, style='List Bullet')
@@ -367,7 +388,7 @@ elif opcao_principal == "Cálculos":
                     f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
                     f"Intensidade Pluviométrica Máxima (i_max): {st.session_state.i_max:.2f} mm/h",
                     f"Vazão Máxima de Projeto (Q): {st.session_state.Q:.3f} m³/s",
-                    f"Probabilidade de ocorrência em {n_period} ano(s): {st.session_state.P_n_percent:.2f}%"
+                    f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): {st.session_state.P_n_percent:.2f}%"
                 ]
                 for item in resultados_rel:
                     doc.add_paragraph(item, style='List Bullet')
@@ -381,5 +402,5 @@ elif opcao_principal == "Cálculos":
                 st.write(f"Tempo de Concentração (tc = td): **{st.session_state.tc:.2f} minutos**")
                 st.write(f"Intensidade Pluviométrica Máxima (i_max): **{st.session_state.i_max:.2f} mm/h**")
                 st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
-                st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
+                st.write(f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): **{st.session_state.P_n_percent:.2f}%**")
 
