@@ -4,7 +4,7 @@
 # In[ ]:
 
 
-import streamlit as st 
+import streamlit as st
 from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
@@ -41,14 +41,14 @@ if "comprimento_total_cursos_agua_km" not in st.session_state:
 if "desnivel_m" not in st.session_state:
     st.session_state.desnivel_m = 10.0
 
-# ------------------- Funções das páginas -------------------
+# ---------------- Funções das Páginas ----------------
 
 def page_dados_projeto():
     st.title("Dados do Projeto")
     st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
     st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
     st.text_area("Resumo", max_chars=200, height=90, key="resumo")
-    
+
 def page_caracteristica_bacia():
     st.title("Parâmetros de Bacia Hidrográfica")
     st.sidebar.header("Insira os dados da bacia")
@@ -59,7 +59,7 @@ def page_caracteristica_bacia():
     comprimento_total_cursos_agua_km = st.sidebar.number_input("Comprimento Total dos Cursos d'Água (km)", min_value=4.0, format="%.2f", key="comprimento_total_cursos_agua_km")
     desnivel_m = st.sidebar.number_input("Desnível da Bacia (m)", min_value=10.0, format="%.2f", key="desnivel_m")
     
-    # Cálculos
+    # Cálculos dos parâmetros
     kf = area_km2 / (comprimento_curso_principal_km ** 2)
     kc = 0.28 * perimetro_km / (area_km2 ** 0.5)
     dd = comprimento_total_cursos_agua_km / area_km2
@@ -69,15 +69,14 @@ def page_caracteristica_bacia():
     
     st.header("Resultados dos Parâmetros da Bacia")
     st.markdown(f"""
-    - **Coeficiente de Forma (Kf)**: {kf:.3f}
-    - **Coeficiente de Compacidade (Kc)**: {kc:.3f}
-    - **Densidade de Drenagem (Dd)**: {dd:.3f} km/km²
-    - **Extensão Média do Escoamento (lm)**: {lm:.3f} km
-    - **Índice de Sinuosidade (Sc)**: {sc:.3f}
-    - **Declividade do Curso d'água Principal (Dc)**: {dc:.3f}%
+    - **Coeficiente de Forma (Kf):** {kf:.3f}
+    - **Coeficiente de Compacidade (Kc):** {kc:.3f}
+    - **Densidade de Drenagem (Dd):** {dd:.3f} km/km²
+    - **Extensão Média do Escoamento (lm):** {lm:.3f} km
+    - **Índice de Sinuosidade (Sc):** {sc:.3f}
+    - **Declividade do Curso d'água Principal (Dc):** {dc:.3f}%
     """)
     
-    # Geração do relatório em Word
     if st.button("📄 Gerar Relatório Word - Parâmetros da Bacia", key="bt_rel_bacia"):
         doc = Document()
         sec = doc.sections[0]
@@ -103,13 +102,12 @@ def page_caracteristica_bacia():
         doc.save("relatorio_bacia.docx")
         with open("relatorio_bacia.docx", "rb") as f:
             st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_bacia.docx")
-            
+
 def page_microdrenagem():
     st.title("Microdrenagem - Método Racional")
     modelo_options = ["Kirpich", "Kirpich Modificado", "Van Te Chow", "George Ribeiro", "Piking", "USACE", "DNOS", "NRCS (SCS)"]
     modelo_tc = st.selectbox("Selecione o modelo para o cálculo do tempo de concentração:", modelo_options, key="modelo_tc")
     
-    # Com base no modelo selecionado, exibe os inputs correspondentes
     if modelo_tc == "Kirpich":
         st.markdown("#### Parâmetros para a fórmula de Kirpich")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1, key="L_km")
@@ -204,7 +202,7 @@ def page_microdrenagem():
     else:
         st.info("Selecione um modelo válido.")
         st.session_state.tc = None
-        
+
     st.markdown("### Dados para o Cálculo da Intensidade Pluviométrica Máxima")
     a = st.number_input("Coeficiente a", value=1000.0, step=10.0, key="a")
     b = st.number_input("Coeficiente b", value=10.0, step=0.01, key="b")
@@ -320,12 +318,22 @@ def page_microdrenagem():
             st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
             st.write(f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): **{st.session_state.P_n_percent:.2f}%**")
 
-# ------------------- Página Principal -------------------
+# ---------------- Navegação Principal ----------------
+
+# Definindo as páginas disponíveis
 page_options = ["Dados do Projeto", "Cálculos"]
 page = st.sidebar.selectbox("Selecione a Página", page_options, key="page_select")
 
 if page == "Dados do Projeto":
     page_dados_projeto()
 elif page == "Cálculos":
+    # Chamamos a função que gerencia o submenu de cálculos
+    def page_calculos():
+        submenu_options = ["Característica da Bacia", "Microdrenagem - Método Racional"]
+        submenu = st.sidebar.radio("Selecione o tipo de Cálculo", submenu_options, key="submenu_calculos")
+        if submenu == "Característica da Bacia":
+            page_caracteristica_bacia()
+        elif submenu == "Microdrenagem - Método Racional":
+            page_microdrenagem()
     page_calculos()
 
