@@ -19,6 +19,28 @@ if "Q" not in st.session_state:
 if "P_n_percent" not in st.session_state:
     st.session_state.P_n_percent = None
 
+# Inicializa os campos dos Dados do Projeto, se não existirem
+if "nome_projeto" not in st.session_state:
+    st.session_state.nome_projeto = ""
+if "tecnico" not in st.session_state:
+    st.session_state.tecnico = ""
+if "resumo" not in st.session_state:
+    st.session_state.resumo = ""
+
+# (Opcional) Inicializa também outros campos que serão usados em Cálculos
+if "area_km2_bacia" not in st.session_state:
+    st.session_state.area_km2_bacia = 10.0
+if "perimetro_km" not in st.session_state:
+    st.session_state.perimetro_km = 20.0
+if "comprimento_curso_principal_km" not in st.session_state:
+    st.session_state.comprimento_curso_principal_km = 2.0
+if "comprimento_retalinea_km" not in st.session_state:
+    st.session_state.comprimento_retalinea_km = 1.5
+if "comprimento_total_cursos_agua_km" not in st.session_state:
+    st.session_state.comprimento_total_cursos_agua_km = 4.0
+if "desnivel_m" not in st.session_state:
+    st.session_state.desnivel_m = 10.0
+
 # Título na barra lateral
 st.sidebar.title("Drenagem Urbana")
 
@@ -34,7 +56,7 @@ opcao_principal = st.sidebar.selectbox(
 if opcao_principal == "Dados do Projeto":
     st.title("Dados do Projeto")
     
-    # Campos de entrada com persistência (utilizando key)
+    # Os widgets usam o valor atual do st.session_state (que já foi inicializado)
     nome_projeto = st.text_input("Nome do Projeto", max_chars=100, key="nome_projeto")
     tecnico = st.text_input("Técnico Responsável", max_chars=100, key="tecnico")
     resumo = st.text_area("Resumo", max_chars=200, height=90, key="resumo")
@@ -339,7 +361,7 @@ elif opcao_principal == "Cálculos":
                 st.session_state.P_n_percent is None):
                 st.error("Realize o cálculo primeiro para gerar o relatório.")
             else:
-                # Criando variáveis auxiliares para os valores de L_km e H
+                # Variáveis auxiliares para os valores de L_km e H
                 L_km_val = (st.session_state.get('L_km') or 
                             st.session_state.get('L_km_mod') or 
                             st.session_state.get('L_km_vtc') or 
