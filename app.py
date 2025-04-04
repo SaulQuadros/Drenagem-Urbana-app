@@ -22,8 +22,8 @@ if "P_n_percent" not in st.session_state:
 # Título na barra lateral
 st.sidebar.title("Drenagem Urbana")
 
-# Opções de menu em nível superior
-opcao_principal = st.sidebar.radio(
+# Opções de menu em nível superior utilizando uma lista (selectbox)
+opcao_principal = st.sidebar.selectbox(
     "Selecione a Opção",
     ["Dados do Projeto", "Cálculos"],
     index=0
