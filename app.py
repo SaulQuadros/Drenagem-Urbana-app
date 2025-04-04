@@ -187,13 +187,12 @@ elif menu == "Microdrenagem - Método Racional":
         # S = H / L (L permanece em km)
         S = H / (L_km * 1000)
         st.session_state.tc = 5,773* ((L_km / (S ** 0.5)) ** 0.64)
-    elif modelo_tc == "Giandotti":
-        st.markdown("#### Parâmetros para a fórmula de Giandotti")
-        L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
-        H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
-        # Aqui, A será utilizada a partir da seção "Dados da Bacia para o Método Racional"
-        A = st.session_state.get("area_km2_micro", 1.0)
-        st.session_state.tc = 60 * ((4 * (A ** 0.5) + 1.5 * L_km) / (0.8 * (H ** 0.5)))
+    elif modelo_tc == "George Ribeiro":
+            st.markdown("#### Parâmetros para a fórmula de George Ribeiro")
+            L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
+            H = st.number_input("Desnível da bacia (m)", min_value=1.0, value=20.0, step=1.0)
+            S = H / (L_km * 1000)
+            pr = st.number_input("Parâmetro (pr) - Porção da bacia coberta por vegetação", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
     elif modelo_tc == "Piking":
         st.markdown("#### Parâmetros para a fórmula de Piking")
         L_km = st.number_input("Comprimento máximo do percurso d'água (km)", min_value=0.1, value=1.0, step=0.1)
