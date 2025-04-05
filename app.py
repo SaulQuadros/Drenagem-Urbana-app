@@ -17,7 +17,7 @@ def format_num(value, decimals=2):
     """
     try:
         value = float(value)
-        # Exemplo: 1234567.89 -> "1,234,567.89"
+        # Formata conforme: 1234567.89 -> "1,234,567.89"
         formatted = f"{value:,.{decimals}f}"
         # Inverte os separadores: vírgula para ponto e ponto para vírgula
         formatted = formatted.replace(",", "X").replace(".", ",").replace("X", ".")
@@ -357,7 +357,7 @@ elif opcao_principal == "Cálculos":
         n = st.number_input("Expoente n", value=1.0, step=0.01, key="n")
         
         # Novos inputs para a equação de i_max e probabilidade
-        T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=10, step=1, key="T")
+        T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1, key="T")
         n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1, key="n_period")
         
         st.markdown("### Coeficiente de Escoamento Superficial (C)")
@@ -440,21 +440,21 @@ elif opcao_principal == "Cálculos":
         
                 doc.add_paragraph()
         
-                # Seção: Dados do Projeto (relatório interno)
+                # Seção: Dados do Projeto (relatório interno) – formatação ajustada
                 doc.add_heading('Dados do Projeto', level=2)
                 dados_projeto = [
                     f"Modelo de Cálculo do tc: {modelo_tc}",
-                    f"Comprimento máximo do percurso d'água (km): {L_km_val}",
-                    f"Desnível da bacia (m): {H_val}",
+                    f"Comprimento máximo do percurso d'água (km): {format_num(L_km_val, 2)}",
+                    f"Desnível da bacia (m): {format_num(H_val, 2)}",
                     f"Tempo de Concentração (tc = td): {format_num(st.session_state.tc, 2)} minutos",
-                    f"Coeficiente a: {st.session_state.get('a', '')}",
-                    f"Coeficiente b: {st.session_state.get('b', '')}",
-                    f"Expoente m: {st.session_state.get('m', '')}",
-                    f"Expoente n: {st.session_state.get('n', '')}",
-                    f"Tempo de Retorno (T): {st.session_state.get('T', '')} ano(s)",
-                    f"Período de análise (n anos): {st.session_state.get('n_period', '')}",
-                    f"Coeficiente de Escoamento (C): {st.session_state.get('C', '')}",
-                    f"Área da Bacia (km²): {st.session_state.get('area_km2_micro', '')}"
+                    f"Coeficiente a: {format_num(st.session_state.get('a', 0), 2)}",
+                    f"Coeficiente b: {format_num(st.session_state.get('b', 0), 2)}",
+                    f"Expoente m: {format_num(st.session_state.get('m', 0), 2)}",
+                    f"Expoente n: {format_num(st.session_state.get('n', 0), 2)}",
+                    f"Tempo de Retorno (T): {format_num(st.session_state.get('T', 0), 0)} ano(s)",
+                    f"Período de análise (n anos): {format_num(st.session_state.get('n_period', 0), 0)}",
+                    f"Coeficiente de Escoamento (C): {format_num(st.session_state.get('C', 0), 2)}",
+                    f"Área da Bacia (km²): {format_num(st.session_state.get('area_km2_micro', 0), 3)}"
                 ]
                 for item in dados_projeto:
                     doc.add_paragraph(item, style='List Bullet')
