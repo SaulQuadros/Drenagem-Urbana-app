@@ -357,7 +357,7 @@ elif opcao_principal == "Cálculos":
         n = st.number_input("Expoente n", value=1.0, step=0.01, key="n")
         
         # Novos inputs para a equação de i_max e probabilidade
-        T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=1, step=1, key="T")
+        T = st.number_input("Tempo de Retorno (anos)", min_value=1, max_value=1000, value=10, step=1, key="T")
         n_period = st.number_input("Período de análise (n anos)", min_value=1, max_value=T, value=1, step=1, key="n_period")
         
         st.markdown("### Coeficiente de Escoamento Superficial (C)")
