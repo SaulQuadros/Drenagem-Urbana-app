@@ -4,10 +4,26 @@
 # In[ ]:
 
 
-import streamlit as st 
+import streamlit as st  
 from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+
+def format_num(value, decimals=2):
+    """
+    Formata um número para exibir:
+    - separador de milhar: ponto (.)
+    - separador decimal: vírgula (,)
+    """
+    try:
+        value = float(value)
+        # Exemplo: 1234567.89 -> "1,234,567.89"
+        formatted = f"{value:,.{decimals}f}"
+        # Inverte os separadores: vírgula para ponto e ponto para vírgula
+        formatted = formatted.replace(",", "X").replace(".", ",").replace("X", ".")
+        return formatted
+    except Exception:
+        return value
 
 # Inicializa o estado para as variáveis, se não existirem
 if "tc" not in st.session_state:
@@ -148,28 +164,28 @@ elif opcao_principal == "Cálculos":
         
         st.header('Resultados dos Parâmetros da Bacia')
         st.markdown(f'''
-        - **Coeficiente de Forma (Kf)**: {kf:.3f}  
+        - **Coeficiente de Forma (Kf)**: {format_num(kf, 3)}  
           **Interpretação**: quanto mais próximo de 1, mais arredondada é a bacia, indicando picos de vazões mais elevados e maior 
           tendência para enchentes rápidas, sendo o oposto para valores que se aproximam de 0.
         
-        - **Coeficiente de Compacidade (Kc)**: {kc:.3f}  
+        - **Coeficiente de Compacidade (Kc)**: {format_num(kc, 3)}  
           **Interpretação**: quanto mais próximo de 1, mais circular é o formato da bacia e favorece o escoamento com altos picos de vazão, 
           sendo a bacia mais sujeita a inundações rápidas, sendo o oposto para valores que se afastam de 1.
         
-        - **Densidade de Drenagem (Dd)**: {dd:.3f} km/km²  
+        - **Densidade de Drenagem (Dd)**: {format_num(dd, 3)} km/km²  
           **Interpretação**: valores maiores que 1 indicam maior rapidez no escoamento superficial e menor infiltração, com maior risco de 
           enchentes, e o inverso para valores menores que 1.
         
-        - **Extensão Média do Escoamento (lm)**: {lm:.3f} km
+        - **Extensão Média do Escoamento (lm)**: {format_num(lm, 3)} km
           **Interpretação**: valores entre 100m e 250m indicam uma bacia com drenagem moderada, com equilíbrio entre infiltração e escoamento 
           superficial, contudo, abaixo de 100 m, o escoamento superficial tende a ser rápido com pico de vazões elevados, e acima de 250 m 
           o inverso.
         
-        - **Índice de Sinuosidade (Sc)**: {sc:.3f}  
+        - **Índice de Sinuosidade (Sc)**: {format_num(sc, 3)}  
           **Interpretação**: valores próximos de 1 indicam canais mais retos e maior eficiência de drenagem, portanto, quanto maior o valor 
           maior a sinuosidade e com isso, maior risco de enchentes.
         
-        - **Declividade do Curso d'água Principal (Dc)**: {dc:.3f}%  
+        - **Declividade do Curso d'água Principal (Dc)**: {format_num(dc, 3)}%  
           **Interpretação**: valores abaixo de 1% indicam maior risco de enchentes, pois a drenagem é demorada, sendo rios de planícies, 
           e acima de 5% indicam rios com corredeiras e elevada velocidade de escoamento. 
         ''')
@@ -205,7 +221,7 @@ elif opcao_principal == "Cálculos":
                 run_param.bold = True
                 run_param.font.size = Pt(11)
                 run_param.font.name = 'Aptos'
-                run_valor = p_param.add_run(f"{valor:.3f}")
+                run_valor = p_param.add_run(f"{format_num(valor, 3)}")
                 run_valor.font.size = Pt(11)
                 run_valor.font.name = 'Aptos'
                 p_param.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
@@ -372,10 +388,10 @@ elif opcao_principal == "Cálculos":
                     st.session_state.Q = C * i_max_ms * area_m2
                     
                     st.markdown("#### Resultados do Projeto")
-                    st.write(f"Tempo de Concentração (tc = td): **{td:.2f} minutos**")
-                    st.write(f"Intensidade Pluviométrica Máxima (i_max): **{st.session_state.i_max:.2f} mm/h**")
-                    st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
-                    st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{st.session_state.P_n_percent:.2f}%**")
+                    st.write(f"Tempo de Concentração (tc = td): **{format_num(td, 2)} minutos**")
+                    st.write(f"Intensidade Pluviométrica Máxima (i_max): **{format_num(st.session_state.i_max, 2)} mm/h**")
+                    st.write(f"Vazão Máxima de Projeto (Q): **{format_num(st.session_state.Q, 3)} m³/s**")
+                    st.write(f"Probabilidade de ocorrência em {n_period} ano(s): **{format_num(st.session_state.P_n_percent, 2)}%**")
         
         if st.button("📄 Gerar Relatório Word - Microdrenagem", key="bt_rel_micro"):
             if (st.session_state.tc is None or
@@ -430,7 +446,7 @@ elif opcao_principal == "Cálculos":
                     f"Modelo de Cálculo do tc: {modelo_tc}",
                     f"Comprimento máximo do percurso d'água (km): {L_km_val}",
                     f"Desnível da bacia (m): {H_val}",
-                    f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
+                    f"Tempo de Concentração (tc = td): {format_num(st.session_state.tc, 2)} minutos",
                     f"Coeficiente a: {st.session_state.get('a', '')}",
                     f"Coeficiente b: {st.session_state.get('b', '')}",
                     f"Expoente m: {st.session_state.get('m', '')}",
@@ -448,10 +464,10 @@ elif opcao_principal == "Cálculos":
                 # Seção: Resultados
                 doc.add_heading('Resultados', level=2)
                 resultados_rel = [
-                    f"Tempo de Concentração (tc = td): {st.session_state.tc:.2f} minutos",
-                    f"Intensidade Pluviométrica Máxima (i_max): {st.session_state.i_max:.2f} mm/h",
-                    f"Vazão Máxima de Projeto (Q): {st.session_state.Q:.3f} m³/s",
-                    f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): {st.session_state.P_n_percent:.2f}%"
+                    f"Tempo de Concentração (tc = td): {format_num(st.session_state.tc, 2)} minutos",
+                    f"Intensidade Pluviométrica Máxima (i_max): {format_num(st.session_state.i_max, 2)} mm/h",
+                    f"Vazão Máxima de Projeto (Q): {format_num(st.session_state.Q, 3)} m³/s",
+                    f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): {format_num(st.session_state.P_n_percent, 2)}%"
                 ]
                 for item in resultados_rel:
                     doc.add_paragraph(item, style='List Bullet')
@@ -462,8 +478,8 @@ elif opcao_principal == "Cálculos":
                     st.download_button("⬇️ Baixar relatório", f, file_name="relatorio_vazao_maxima.docx")
                 
                 st.markdown("#### Resultados do Projeto (mantidos na tela)")
-                st.write(f"Tempo de Concentração (tc = td): **{st.session_state.tc:.2f} minutos**")
-                st.write(f"Intensidade Pluviométrica Máxima (i_max): **{st.session_state.i_max:.2f} mm/h**")
-                st.write(f"Vazão Máxima de Projeto (Q): **{st.session_state.Q:.3f} m³/s**")
-                st.write(f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): **{st.session_state.P_n_percent:.2f}%**")
+                st.write(f"Tempo de Concentração (tc = td): **{format_num(st.session_state.tc, 2)} minutos**")
+                st.write(f"Intensidade Pluviométrica Máxima (i_max): **{format_num(st.session_state.i_max, 2)} mm/h**")
+                st.write(f"Vazão Máxima de Projeto (Q): **{format_num(st.session_state.Q, 3)} m³/s**")
+                st.write(f"Probabilidade de ocorrência em {st.session_state.get('n_period', '')} ano(s): **{format_num(st.session_state.P_n_percent, 2)}%**")
 
